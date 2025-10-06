@@ -49,4 +49,3 @@ git-lfs
 # Docker
 docker.io
 docker-compose
-docker-compose-plugin
