@@ -179,6 +179,9 @@ remove_stow_conflicts() {
     local component_dir="$(dirname "$component")"
     local component_name="$(basename "$component")"
 
+    # Parent directories that should never be removed
+    local skip_dirs=(".config" ".local" ".cache")
+
     # Run stow dry-run to detect conflicts
     local stow_output=$(stow -n --no-folding -v -t "$HOME" -d "$component_dir" "$component_name" 2>&1 || true)
 
@@ -191,6 +194,20 @@ remove_stow_conflicts() {
             # Extract the filename from the error message
             local conflict=$(echo "$line" | sed -n 's/.*existing target is.*: \(.*\)$/\1/p')
             if [[ -n "$conflict" ]]; then
+                # Skip parent directories - they should exist
+                local skip=false
+                for skip_dir in "${skip_dirs[@]}"; do
+                    if [[ "$conflict" == "$skip_dir" ]]; then
+                        skip=true
+                        break
+                    fi
+                done
+
+                if [[ "$skip" == true ]]; then
+                    log_info "Skipping parent directory: $conflict"
+                    continue
+                fi
+
                 local full_path="$HOME/$conflict"
                 if [[ -e "$full_path" ]] && [[ ! -L "$full_path" ]]; then
                     log_warning "Removing conflicting file: $conflict"
@@ -233,7 +250,23 @@ stow_configs() {
         if [[ -d "$component" ]]; then
             log_info "Stowing $component..."
 
-            # Remove any conflicts before stowing
+            # Pre-emptively remove known target paths that will be symlinked
+            # This handles cases where the user runs --only stow without backup
+            cd "$DOTFILES_DIR/$component"
+            find . -type f -o -type d | while IFS= read -r item; do
+                # Skip the . directory itself
+                [[ "$item" == "." ]] && continue
+                # Remove leading ./
+                item="${item#./}"
+                target_path="$HOME/$item"
+                if [[ -e "$target_path" ]] && [[ ! -L "$target_path" ]]; then
+                    log_info "Removing existing path before stow: $item"
+                    rm -rf "$target_path"
+                fi
+            done
+            cd "$DOTFILES_DIR"
+
+            # Remove any remaining conflicts
             remove_stow_conflicts "$component"
 
             # Now stow the component
