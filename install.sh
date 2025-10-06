@@ -61,6 +61,20 @@ check_dependencies() {
     done
 }
 
+setup_locale() {
+    if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+        # Check if locale is already generated
+        if ! locale -a | grep -q "en_US.utf8"; then
+            log_info "Generating en_US.UTF-8 locale..."
+            sudo locale-gen en_US.UTF-8
+            sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+            log_success "Locale configured"
+        else
+            log_info "Locale en_US.UTF-8 already configured"
+        fi
+    fi
+}
+
 install_homebrew() {
     if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
         if ! command -v brew &>/dev/null; then
@@ -378,6 +392,37 @@ EOF
     fi
 }
 
+install_docker() {
+    if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+        if ! command -v docker &>/dev/null; then
+            log_info "Installing Docker..."
+            # Docker is in apt.txt and will be installed via install_packages
+            log_info "Docker will be installed via apt packages"
+        else
+            log_info "Docker already installed"
+        fi
+
+        # Configure Docker to run without sudo
+        if ! groups | grep -q docker; then
+            log_info "Adding user to docker group..."
+            sudo usermod -aG docker "$USER"
+            log_warning "You need to log out and back in for docker group changes to take effect"
+        fi
+
+        # Install zsh Docker completions
+        if command -v zsh &>/dev/null; then
+            local completion_dir="/usr/share/zsh/vendor-completions"
+            if [[ ! -f "$completion_dir/_docker" ]]; then
+                log_info "Installing zsh Docker completions..."
+                sudo mkdir -p "$completion_dir"
+                sudo curl -fsSL https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o "$completion_dir/_docker"
+            fi
+        fi
+    elif [[ "$OS_TYPE" == "macos" ]]; then
+        log_info "Docker Desktop will be installed via Homebrew cask"
+    fi
+}
+
 setup_neovim() {
     log_info "Setting up Neovim with LazyVim..."
 
@@ -423,7 +468,7 @@ Options:
     --help          Show this help message
 
 Components:
-    packages, stow, shell, neovim, mise, nix, all
+    packages, stow, shell, neovim, mise, nix, docker, all
 
 Example:
     $0 --only packages,shell
@@ -442,6 +487,7 @@ main() {
 
     detect_os
     check_dependencies
+    setup_locale
 
     if [[ "$DRY_RUN" == true ]]; then
         log_warning "DRY RUN MODE - No changes will be made"
@@ -462,6 +508,7 @@ main() {
         setup_shell
         install_mise
         install_nix
+        install_docker
         setup_neovim
     else
         for component in "${COMPONENTS[@]}"; do
@@ -485,6 +532,9 @@ main() {
                     ;;
                 nix)
                     install_nix
+                    ;;
+                docker)
+                    install_docker
                     ;;
                 *)
                     log_warning "Unknown component: $component"
