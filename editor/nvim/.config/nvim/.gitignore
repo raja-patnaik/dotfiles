@@ -1,0 +1,9 @@
+# Lazy.nvim
+lazy-lock.json
+
+# Neovim runtime
+*.log
+.luarc.json
+
+# LSP
+.null-ls_*
