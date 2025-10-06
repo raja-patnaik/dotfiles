@@ -174,6 +174,40 @@ install_packages() {
     fi
 }
 
+remove_stow_conflicts() {
+    local component="$1"
+    local component_dir="$(dirname "$component")"
+    local component_name="$(basename "$component")"
+
+    # Run stow dry-run to detect conflicts
+    local stow_output=$(stow -n -v -t "$HOME" -d "$component_dir" "$component_name" 2>&1 || true)
+
+    # Check if there are conflicts
+    if echo "$stow_output" | grep -q "existing target"; then
+        log_info "Removing conflicts for $component_name..."
+
+        # Extract conflicting file paths and remove them
+        echo "$stow_output" | grep "existing target" | while IFS= read -r line; do
+            # Extract the filename from the error message
+            local conflict=$(echo "$line" | sed -n 's/.*existing target is.*: \(.*\)$/\1/p')
+            if [[ -n "$conflict" ]]; then
+                local full_path="$HOME/$conflict"
+                if [[ -e "$full_path" ]] && [[ ! -L "$full_path" ]]; then
+                    log_warning "Removing conflicting file: $conflict"
+                    rm -rf "$full_path"
+                elif [[ -L "$full_path" ]]; then
+                    # If it's a symlink, check if it points to our dotfiles
+                    local link_target=$(readlink "$full_path")
+                    if [[ "$link_target" != *"dotfiles"* ]]; then
+                        log_warning "Removing conflicting symlink: $conflict"
+                        rm -f "$full_path"
+                    fi
+                fi
+            fi
+        done
+    fi
+}
+
 stow_configs() {
     log_info "Stowing configurations..."
     cd "$DOTFILES_DIR"
@@ -198,6 +232,11 @@ stow_configs() {
     for component in "${components[@]}"; do
         if [[ -d "$component" ]]; then
             log_info "Stowing $component..."
+
+            # Remove any conflicts before stowing
+            remove_stow_conflicts "$component"
+
+            # Now stow the component
             stow -v -t "$HOME" -d "$(dirname "$component")" "$(basename "$component")"
         fi
     done
