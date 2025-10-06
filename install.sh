@@ -134,11 +134,11 @@ install_packages() {
         linux|wsl)
             if command -v apt-get &>/dev/null && [[ -f "$DOTFILES_DIR/packages/apt.txt" ]]; then
                 log_info "Installing apt packages..."
-                xargs -a "$DOTFILES_DIR/packages/apt.txt" sudo apt-get install -y
+                cat "$DOTFILES_DIR/packages/apt.txt" | grep -v '^\s*#' | grep -v '^\s*$' | xargs sudo apt-get install -y
             fi
             if command -v brew &>/dev/null && [[ -f "$DOTFILES_DIR/packages/brew-linux.txt" ]]; then
                 log_info "Installing Homebrew packages..."
-                xargs -a "$DOTFILES_DIR/packages/brew-linux.txt" brew install
+                cat "$DOTFILES_DIR/packages/brew-linux.txt" | grep -v '^\s*#' | grep -v '^\s*$' | xargs brew install
             fi
             ;;
     esac
