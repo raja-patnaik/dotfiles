@@ -180,7 +180,7 @@ remove_stow_conflicts() {
     local component_name="$(basename "$component")"
 
     # Run stow dry-run to detect conflicts
-    local stow_output=$(stow -n -v -t "$HOME" -d "$component_dir" "$component_name" 2>&1 || true)
+    local stow_output=$(stow -n --no-folding -v -t "$HOME" -d "$component_dir" "$component_name" 2>&1 || true)
 
     # Check if there are conflicts
     if echo "$stow_output" | grep -q "existing target"; then
@@ -237,7 +237,7 @@ stow_configs() {
             remove_stow_conflicts "$component"
 
             # Now stow the component
-            stow -v -t "$HOME" -d "$(dirname "$component")" "$(basename "$component")"
+            stow --no-folding -v -t "$HOME" -d "$(dirname "$component")" "$(basename "$component")"
         fi
     done
 }
