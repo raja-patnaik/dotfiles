@@ -32,6 +32,7 @@
 
     # Development
     neovim
+    tree-sitter
     tmux
     starship
     direnv

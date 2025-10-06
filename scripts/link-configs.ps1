@@ -168,8 +168,8 @@ $configs = @{
     # PowerShell profile
     "$DotfilesDir\shell\powershell\Microsoft.PowerShell_profile.ps1" = $PROFILE
 
-    # Windows Terminal settings (if exists)
-    "$DotfilesDir\terminal\windows-terminal\settings.json" = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    # Windows Terminal settings (optional - uncomment if you have Windows Terminal config)
+    # "$DotfilesDir\terminal\windows-terminal\settings.json" = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
 }
 
 # WSL-specific configurations
@@ -185,8 +185,8 @@ $wslConfigs = @{
     # Tmux
     "$DotfilesDir\tools\tmux\.tmux.conf" = "$env:USERPROFILE\.tmux.conf"
 
-    # Vim
-    "$DotfilesDir\common\vim\.vimrc" = "$env:USERPROFILE\.vimrc"
+    # Vim (optional - uncomment if you use Vim)
+    # "$DotfilesDir\common\vim\.vimrc" = "$env:USERPROFILE\.vimrc"
 }
 
 # Main function
@@ -239,82 +239,8 @@ function Main {
     Write-Success "Configuration linking completed!"
 }
 
-# Create PowerShell profile if needed
-function Initialize-PowerShellProfile {
-    $profilePath = "$DotfilesDir\shell\powershell\Microsoft.PowerShell_profile.ps1"
-
-    if (-not (Test-Path $profilePath)) {
-        Write-Info "Creating PowerShell profile..."
-
-        $profileContent = @'
-# PowerShell Profile
-
-# Import modules
-if (Get-Module -ListAvailable -Name posh-git) {
-    Import-Module posh-git
-}
-if (Get-Module -ListAvailable -Name Terminal-Icons) {
-    Import-Module Terminal-Icons
-}
-if (Get-Module -ListAvailable -Name PSReadLine) {
-    Import-Module PSReadLine
-    Set-PSReadLineOption -PredictionSource History
-    Set-PSReadLineOption -PredictionViewStyle ListView
-}
-if (Get-Module -ListAvailable -Name z) {
-    Import-Module z
-}
-
-# Aliases
-Set-Alias -Name g -Value git
-Set-Alias -Name lg -Value lazygit
-Set-Alias -Name v -Value nvim
-Set-Alias -Name ll -Value 'eza -la'
-
-# Starship prompt
-if (Get-Command starship -ErrorAction SilentlyContinue) {
-    Invoke-Expression (&starship init powershell)
-}
-
-# Zoxide
-if (Get-Command zoxide -ErrorAction SilentlyContinue) {
-    Invoke-Expression (& { (zoxide init powershell | Out-String) })
-}
-
-# Atuin
-if (Get-Command atuin -ErrorAction SilentlyContinue) {
-    Invoke-Expression (& { (atuin init powershell | Out-String) })
-}
-
-# Helper functions
-function mkcd {
-    param($Path)
-    New-Item -ItemType Directory -Force -Path $Path
-    Set-Location $Path
-}
-
-function which {
-    param($Command)
-    Get-Command $Command | Select-Object -ExpandProperty Source
-}
-
-function reload {
-    . $PROFILE
-}
-'@
-
-        $profileDir = Split-Path $profilePath -Parent
-        if (-not (Test-Path $profileDir)) {
-            New-Item -ItemType Directory -Force -Path $profileDir | Out-Null
-        }
-
-        $profileContent | Out-File -FilePath $profilePath -Encoding UTF8
-        Write-Success "Created PowerShell profile"
-    }
-}
-
-# Initialize profile if needed
-Initialize-PowerShellProfile
+# PowerShell profile now exists as a file in shell/powershell/
+# No need to generate it dynamically
 
 # Run main function
 Main
