@@ -265,12 +265,14 @@ stow_configs() {
     # Ensure parent directories exist as regular directories
     log_info "Creating parent directories..."
     for dir in ".config" ".local" ".cache"; do
-        # Remove if exists as file or broken symlink
-        if [[ -e "$HOME/$dir" ]] && [[ ! -d "$HOME/$dir" ]]; then
-            log_warning "Removing $dir (not a directory)"
-            rm -f "$HOME/$dir"
+        # Remove anything that's not a directory (file, symlink, broken symlink)
+        if [[ ! -d "$HOME/$dir" ]]; then
+            if [[ -e "$HOME/$dir" ]] || [[ -L "$HOME/$dir" ]]; then
+                log_warning "Removing $dir (not a directory)"
+            fi
+            rm -rf "$HOME/$dir" 2>/dev/null || true
+            mkdir -p "$HOME/$dir"
         fi
-        mkdir -p "$HOME/$dir"
     done
 
     for component in "${components[@]}"; do
