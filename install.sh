@@ -396,18 +396,24 @@ install_nodejs() {
             log_info "Node.js $(node --version) already installed"
         fi
 
+        # Configure npm to use Linux-only global prefix (critical for WSL)
+        if [[ "$IS_WSL" == true ]] || [[ "$OS_TYPE" == "linux" ]]; then
+            log_info "Configuring npm global prefix for Linux..."
+            npm config set prefix "$HOME/.npm-global"
+            export PATH="$HOME/.npm-global/bin:$PATH"
+        fi
+
         # Install tree-sitter CLI via Linux npm (not Windows npm in WSL)
-        if ! command -v tree-sitter &>/dev/null; then
-            log_info "Installing tree-sitter CLI..."
-            # Ensure we use Linux npm by using explicit path
-            if [[ "$IS_WSL" == true ]]; then
-                # In WSL, prioritize Linux binaries over Windows ones
-                export PATH="/usr/bin:/usr/local/bin:$PATH"
-            fi
+        if ! command -v tree-sitter &>/dev/null || [[ "$IS_WSL" == true ]]; then
+            log_info "Installing tree-sitter CLI to Linux npm prefix..."
 
             if command -v npm &>/dev/null; then
+                # Force reinstall in WSL to ensure Linux version
+                if [[ "$IS_WSL" == true ]]; then
+                    npm uninstall -g tree-sitter-cli 2>/dev/null || true
+                fi
                 npm install -g tree-sitter-cli
-                log_success "tree-sitter CLI installed"
+                log_success "tree-sitter CLI installed to $HOME/.npm-global/bin"
             else
                 log_warning "npm not found, skipping tree-sitter CLI installation"
             fi

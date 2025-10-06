@@ -78,6 +78,8 @@ export XDG_STATE_HOME="$HOME/.local/state"
 export XDG_CACHE_HOME="$HOME/.cache"
 
 # Path
+# npm global binaries (for WSL/Linux, ensures npm packages use Linux binaries)
+export PATH="$HOME/.npm-global/bin:$PATH"
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
