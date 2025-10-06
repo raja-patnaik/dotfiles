@@ -392,6 +392,24 @@ EOF
     fi
 }
 
+install_nodejs() {
+    if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+        if ! command -v node &>/dev/null || [[ $(node --version | cut -d'v' -f2 | cut -d'.' -f1) -lt 22 ]]; then
+            log_info "Installing Node.js v22.x..."
+
+            # Install from NodeSource repository
+            curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+
+            log_success "Node.js $(node --version) installed"
+        else
+            log_info "Node.js $(node --version) already installed"
+        fi
+    elif [[ "$OS_TYPE" == "macos" ]]; then
+        log_info "Node.js will be installed via Homebrew"
+    fi
+}
+
 install_docker() {
     if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
         if ! command -v docker &>/dev/null; then
@@ -424,7 +442,7 @@ install_docker() {
 }
 
 setup_neovim() {
-    log_info "Setting up Neovim with LazyVim..."
+    log_info "Setting up Neovim..."
 
     # Install Neovim if not present
     if ! command -v nvim &>/dev/null; then
@@ -437,14 +455,12 @@ setup_neovim() {
             chmod u+x nvim.appimage
             sudo mv nvim.appimage /usr/local/bin/nvim
         fi
+    else
+        log_info "Neovim already installed"
     fi
 
-    # Install LazyVim
-    if [[ ! -d "$HOME/.config/nvim" ]]; then
-        log_info "Installing LazyVim..."
-        git clone https://github.com/LazyVim/starter "$HOME/.config/nvim"
-        rm -rf "$HOME/.config/nvim/.git"
-    fi
+    # LazyVim config will be stowed from dotfiles
+    log_info "LazyVim configuration will be installed via stow"
 }
 
 # Parse arguments
@@ -503,6 +519,7 @@ main() {
         backup_existing_configs
         install_homebrew
         install_stow
+        install_nodejs
         install_packages
         stow_configs
         setup_shell
