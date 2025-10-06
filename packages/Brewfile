@@ -1,0 +1,71 @@
+# Brewfile for macOS using Homebrew Bundle
+# Usage: brew bundle --file=Brewfile
+
+# Taps
+tap "homebrew/bundle"
+tap "homebrew/cask"
+tap "homebrew/cask-fonts"
+
+# Core tools
+brew "git"
+brew "git-delta"
+brew "git-absorb"
+brew "gh"
+brew "stow"
+brew "curl"
+brew "wget"
+
+# Shell and terminal
+brew "zsh"
+brew "bash"
+brew "tmux"
+brew "starship"
+
+# Modern CLI tools
+brew "fzf"
+brew "ripgrep"
+brew "fd"
+brew "jq"
+brew "yq"
+brew "sd"
+brew "zoxide"
+brew "atuin"
+brew "direnv"
+brew "just"
+brew "xh"
+brew "bat"
+brew "eza"
+brew "tldr"
+brew "lazygit"
+
+# System monitoring and utilities
+brew "procs"         # modern ps
+brew "bottom"        # system monitor (btm)
+brew "dust"          # modern du
+brew "duf"           # modern df
+brew "hyperfine"     # command-line benchmarking
+brew "tokei"         # code statistics
+
+# Development tools
+brew "neovim"
+brew "tree-sitter"
+brew "node"
+brew "python"
+brew "go"
+brew "rust"
+brew "mise"
+
+# Shell enhancements
+brew "shellcheck"
+brew "shfmt"
+
+# Pre-commit and linting
+brew "pre-commit"
+brew "ruff"
+brew "black"
+brew "mypy"
+
+# Casks (GUI applications)
+cask "wezterm"
+cask "font-jetbrains-mono-nerd-font"
+cask "font-fira-code-nerd-font"

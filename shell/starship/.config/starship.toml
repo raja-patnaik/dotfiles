@@ -1,0 +1,214 @@
+# Starship prompt configuration
+# https://starship.rs/config/
+
+# General configuration
+format = """
+[](#9A348E)\
+$username\
+[](bg:#DA627D fg:#9A348E)\
+$directory\
+[](fg:#DA627D bg:#FCA17D)\
+$git_branch\
+$git_status\
+[](fg:#FCA17D bg:#86BBD8)\
+$c\
+$elixir\
+$elm\
+$golang\
+$haskell\
+$java\
+$julia\
+$nodejs\
+$nim\
+$rust\
+$python\
+$docker_context\
+[](fg:#86BBD8 bg:#06969A)\
+$time\
+[ ](fg:#06969A)\
+$character"""
+
+# Disable the blank line at the start of the prompt
+add_newline = true
+
+# Wait timeout for commands
+command_timeout = 1000
+
+# Character module - success/error indicator
+[character]
+success_symbol = '[➜](bold green)'
+error_symbol = '[➜](bold red)'
+vicmd_symbol = '[←](bold green)'
+
+# Username module
+[username]
+show_always = true
+style_user = "bg:#9A348E"
+style_root = "bg:#9A348E"
+format = '[$user ]($style)'
+
+# Directory module
+[directory]
+style = "bg:#DA627D"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = " "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+
+# Git modules
+[git_branch]
+symbol = ""
+style = "bg:#FCA17D"
+format = '[[ $symbol $branch ](bg:#FCA17D)]($style)'
+
+[git_status]
+style = "bg:#FCA17D"
+format = '[[($all_status$ahead_behind )](bg:#FCA17D)]($style)'
+conflicted = '🏳'
+up_to_date = ''
+untracked = ' '
+ahead = '⇡${count}'
+diverged = '⇕⇡${ahead_count}⇣${behind_count}'
+behind = '⇣${count}'
+stashed = ' '
+modified = ' '
+staged = '[++\($count\)](green)'
+renamed = '襁 '
+deleted = ' '
+
+# Language modules
+[nodejs]
+symbol = ""
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[rust]
+symbol = ""
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[golang]
+symbol = "ﳑ"
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[python]
+symbol = ""
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[java]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[julia]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[c]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[elixir]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[elm]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[haskell]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+[nim]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[[ $symbol ($version) ](bg:#86BBD8)]($style)'
+
+# Docker module
+[docker_context]
+symbol = " "
+style = "bg:#06969A"
+format = '[[ $symbol $context ](bg:#06969A)]($style)'
+
+# Time module
+[time]
+disabled = false
+time_format = "%R" # Hour:Minute Format
+style = "bg:#06969A"
+format = '[[  $time ](bg:#06969A)]($style)'
+
+# Command duration
+[cmd_duration]
+min_time = 2000
+format = "took [$duration](bold yellow)"
+
+# Jobs indicator
+[jobs]
+symbol = " "
+style = "bold red"
+number_threshold = 1
+format = "[$symbol]($style)"
+
+# Battery module (for laptops)
+[battery]
+full_symbol = " "
+charging_symbol = " "
+discharging_symbol = " "
+unknown_symbol = " "
+empty_symbol = " "
+
+[[battery.display]]
+threshold = 30
+style = "bold red"
+
+# Memory usage (disabled by default)
+[memory_usage]
+disabled = false
+threshold = 70
+symbol = " "
+style = "bold dimmed green"
+
+# Package version
+[package]
+format = "via [🎁 $version](208 bold)"
+
+# Shell indicator
+[shell]
+disabled = false
+format = "[$indicator]($style)"
+fish_indicator = "🐠"
+bash_indicator = "bash"
+zsh_indicator = "zsh"
+powershell_indicator = "psh"
+ion_indicator = "ion"
+elvish_indicator = "esh"
+tcsh_indicator = "tsh"
+xonsh_indicator = "xsh"
+unknown_indicator = "?"
+style = "cyan bold"
+
+# Environment modules
+[aws]
+format = 'on [$symbol($profile )(\($region\) )]($style)'
+style = "bold blue"
+symbol = "☁️  "
+
+[gcloud]
+format = 'on [$symbol$account(@$domain)(\($region\))]($style) '
+
+[kubernetes]
+format = 'on [⛵ $context \($namespace\)](dimmed green) '
+disabled = false

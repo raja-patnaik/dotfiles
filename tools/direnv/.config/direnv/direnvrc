@@ -1,0 +1,293 @@
+# Global direnv configuration
+# https://direnv.net/
+
+# ============================================================================
+# Logging
+# ============================================================================
+
+# Color output
+export DIRENV_LOG_FORMAT="$(tput setaf 6)direnv: %s$(tput sgr0)"
+
+# ============================================================================
+# Layout Functions
+# ============================================================================
+
+# Python virtualenv with automatic creation
+layout_python() {
+  local python=${1:-python3}
+  [[ $# -gt 0 ]] && shift
+  local venv_path="${VIRTUAL_ENV:-.venv}"
+
+  if [[ ! -d "$venv_path" ]]; then
+    log_status "No virtualenv found. Creating one..."
+    $python -m venv "$venv_path"
+  fi
+
+  source "$venv_path/bin/activate"
+}
+
+# Poetry integration
+layout_poetry() {
+  if [[ ! -f pyproject.toml ]]; then
+    log_error 'No pyproject.toml found. Use `poetry new` or `poetry init` to create one first.'
+    exit 2
+  fi
+
+  # Create venv if it doesn't exist
+  poetry install --no-root
+
+  VIRTUAL_ENV=$(poetry env info --path)
+  export VIRTUAL_ENV
+  PATH="$VIRTUAL_ENV/bin:$PATH"
+  export PATH
+}
+
+# Node.js with version management
+layout_node() {
+  local node_version=${1}
+
+  if has mise; then
+    if [[ -n "$node_version" ]]; then
+      mise use node@${node_version}
+    else
+      mise use node
+    fi
+  elif has fnm; then
+    fnm use ${node_version}
+  elif has nvm; then
+    nvm use ${node_version:-default}
+  fi
+
+  layout_node_modules
+}
+
+# Add node_modules/.bin to PATH
+layout_node_modules() {
+  PATH_add node_modules/.bin
+}
+
+# Go modules
+layout_go() {
+  export GOPATH="$PWD/.go"
+  PATH_add "$GOPATH/bin"
+}
+
+# Rust/Cargo
+layout_rust() {
+  PATH_add target/release
+  PATH_add target/debug
+
+  # Set RUST_SRC_PATH for racer
+  if has rustc; then
+    local rust_sysroot=$(rustc --print sysroot)
+    export RUST_SRC_PATH="${rust_sysroot}/lib/rustlib/src/rust/library"
+  fi
+}
+
+# Ruby with version management
+layout_ruby() {
+  local ruby_version=${1}
+
+  if has mise; then
+    if [[ -n "$ruby_version" ]]; then
+      mise use ruby@${ruby_version}
+    else
+      mise use ruby
+    fi
+  elif has rbenv; then
+    rbenv local ${ruby_version:-$(rbenv global)}
+  elif has rvm; then
+    rvm use ${ruby_version:-default}
+  fi
+}
+
+# ============================================================================
+# Helper Functions
+# ============================================================================
+
+# Check if a command exists
+has() {
+  type "$1" &>/dev/null
+}
+
+# Set environment variable if not already set
+export_if_not_set() {
+  local var_name="$1"
+  local var_value="$2"
+
+  if [[ -z "${!var_name}" ]]; then
+    export "$var_name"="$var_value"
+  fi
+}
+
+# Load .env file with proper escaping
+dotenv() {
+  local env_file="${1:-.env}"
+
+  if [[ -f "$env_file" ]]; then
+    log_status "Loading $env_file"
+    eval "$(
+      sed -n -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' -e 's/^/export /' -e p "$env_file" |
+      sed -e 's/=\(.*\)/="\1"/'
+    )"
+  else
+    log_error "No $env_file file found"
+  fi
+}
+
+# Load .env file if it exists
+dotenv_if_exists() {
+  local env_file="${1:-.env}"
+  [[ -f "$env_file" ]] && dotenv "$env_file"
+}
+
+# Source a file if it exists
+source_if_exists() {
+  [[ -f "$1" ]] && source "$1"
+}
+
+# Use a specific tool version with mise/asdf
+use() {
+  local tool="$1"
+  local version="${2:-latest}"
+
+  if has mise; then
+    mise use "${tool}@${version}"
+  elif has asdf; then
+    asdf local "$tool" "$version"
+  else
+    log_error "No version manager found (mise or asdf)"
+  fi
+}
+
+# Watch additional files for changes
+watch_file() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    watch_file "$file"
+  fi
+}
+
+# ============================================================================
+# AWS Helpers
+# ============================================================================
+
+# Set AWS profile
+use_aws() {
+  local profile="${1:-default}"
+  export AWS_PROFILE="$profile"
+  log_status "Using AWS profile: $profile"
+}
+
+# Assume AWS role
+assume_role() {
+  local role_arn="$1"
+  local session_name="${2:-direnv-session}"
+
+  local credentials=$(aws sts assume-role \
+    --role-arn "$role_arn" \
+    --role-session-name "$session_name" \
+    --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
+    --output text)
+
+  export AWS_ACCESS_KEY_ID=$(echo "$credentials" | cut -f1)
+  export AWS_SECRET_ACCESS_KEY=$(echo "$credentials" | cut -f2)
+  export AWS_SESSION_TOKEN=$(echo "$credentials" | cut -f3)
+}
+
+# ============================================================================
+# Docker Helpers
+# ============================================================================
+
+# Use Docker BuildKit
+use_buildkit() {
+  export DOCKER_BUILDKIT=1
+  export COMPOSE_DOCKER_CLI_BUILD=1
+}
+
+# ============================================================================
+# Kubernetes Helpers
+# ============================================================================
+
+# Set Kubernetes context
+use_k8s() {
+  local context="${1}"
+
+  if [[ -n "$context" ]]; then
+    export KUBECONFIG="${PWD}/.kube/config:${KUBECONFIG:-$HOME/.kube/config}"
+    kubectl config use-context "$context"
+  fi
+}
+
+# ============================================================================
+# Terraform Helpers
+# ============================================================================
+
+# Set Terraform workspace
+use_terraform() {
+  local workspace="${1:-default}"
+
+  if [[ -d .terraform ]]; then
+    terraform workspace select "$workspace" 2>/dev/null || terraform workspace new "$workspace"
+  fi
+}
+
+# ============================================================================
+# Common Patterns
+# ============================================================================
+
+# Standard Python project
+layout_python_project() {
+  layout_python
+  dotenv_if_exists
+
+  # Add project root to PYTHONPATH
+  export PYTHONPATH="${PWD}:${PYTHONPATH}"
+}
+
+# Standard Node.js project
+layout_node_project() {
+  layout_node
+  dotenv_if_exists
+}
+
+# Standard Go project
+layout_go_project() {
+  layout_go
+  dotenv_if_exists
+}
+
+# ============================================================================
+# Strict Mode
+# ============================================================================
+
+# Enable strict mode for debugging
+strict_env() {
+  set -euo pipefail
+  export DIRENV_FAIL_FAST=1
+}
+
+# ============================================================================
+# Nix Integration
+# ============================================================================
+
+# Use Nix flake
+use_flake() {
+  watch_file flake.nix
+  watch_file flake.lock
+
+  if has nix; then
+    eval "$(nix print-dev-env)"
+  fi
+}
+
+# ============================================================================
+# mise (formerly rtx) Integration
+# ============================================================================
+
+# Load mise if available
+if has mise; then
+  layout_mise() {
+    eval "$(mise hook-env)"
+  }
+fi

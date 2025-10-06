@@ -1,0 +1,44 @@
+# bat configuration file
+# https://github.com/sharkdp/bat
+
+# Specify theme (use `bat --list-themes` to see available themes)
+# Popular options: TwoDark, Dracula, Nord, Monokai Extended, OneHalfDark, Solarized (dark), Visual Studio Dark+
+--theme="TwoDark"
+
+# Show line numbers, Git modifications, and file header
+--style="numbers,changes,header"
+
+# Use italic text on the terminal (not supported on all terminals)
+--italic-text=always
+
+# Map file extensions to syntax
+# Example: .conf files should use INI syntax
+--map-syntax "*.conf:INI"
+--map-syntax ".ignore:Git Ignore"
+--map-syntax ".gitignore:Git Ignore"
+--map-syntax ".dockerignore:Git Ignore"
+
+# Show non-printable characters like space, tab, etc.
+# --show-all
+
+# Use paging only when output doesn't fit the screen
+--paging=auto
+
+# Wrap text instead of using horizontal scrolling
+--wrap=auto
+
+# Set terminal width (0 = auto-detect)
+--terminal-width=0
+
+# Add custom syntax definitions
+# --syntax-definition="/path/to/custom.sublime-syntax"
+
+# Highlight matching patterns
+# --highlight-line="10:20"
+
+# Tab width
+--tabs=4
+
+# Color scheme for output
+# Use plain style when piped to another program
+--color=auto
