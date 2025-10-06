@@ -192,16 +192,6 @@ install_packages() {
             cargo install "$tool"
         fi
     done
-
-    # Install tree-sitter CLI via npm if not available
-    if ! command -v tree-sitter &>/dev/null; then
-        if command -v npm &>/dev/null; then
-            log_info "Installing tree-sitter CLI via npm..."
-            npm install -g tree-sitter-cli
-        else
-            log_warning "npm not found, skipping tree-sitter CLI installation"
-        fi
-    fi
 }
 
 remove_stow_conflicts() {
@@ -404,6 +394,25 @@ install_nodejs() {
             log_success "Node.js $(node --version) installed"
         else
             log_info "Node.js $(node --version) already installed"
+        fi
+
+        # Install tree-sitter CLI via Linux npm (not Windows npm in WSL)
+        if ! command -v tree-sitter &>/dev/null; then
+            log_info "Installing tree-sitter CLI..."
+            # Ensure we use Linux npm by using explicit path
+            if [[ "$IS_WSL" == true ]]; then
+                # In WSL, prioritize Linux binaries over Windows ones
+                export PATH="/usr/bin:/usr/local/bin:$PATH"
+            fi
+
+            if command -v npm &>/dev/null; then
+                npm install -g tree-sitter-cli
+                log_success "tree-sitter CLI installed"
+            else
+                log_warning "npm not found, skipping tree-sitter CLI installation"
+            fi
+        else
+            log_info "tree-sitter CLI already installed"
         fi
     elif [[ "$OS_TYPE" == "macos" ]]; then
         log_info "Node.js will be installed via Homebrew"
