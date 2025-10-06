@@ -45,3 +45,8 @@ xclip
 # Version control
 gh
 git-lfs
+
+# Docker
+docker.io
+docker-compose
+docker-compose-plugin

@@ -166,6 +166,10 @@ function Install-Packages {
     }
 
     # Install Rust if not present
+    # Ensure cargo environment variables point to correct locations
+    $env:CARGO_HOME = "$env:USERPROFILE\.cargo"
+    $env:RUSTUP_HOME = "$env:USERPROFILE\.rustup"
+
     if (-not (Test-CommandExists rustup)) {
         Write-Info "Installing Rust via rustup..."
         if (-not $DryRun) {
@@ -177,7 +181,17 @@ function Install-Packages {
     } else {
         Write-Info "Updating Rust to latest stable..."
         if (-not $DryRun) {
-            rustup update stable
+            try {
+                rustup update stable
+            } catch {
+                Write-Warning "Rustup update failed, reinstalling..."
+                Remove-Item -Path "$env:USERPROFILE\.cargo" -Recurse -Force -ErrorAction SilentlyContinue
+                Remove-Item -Path "$env:USERPROFILE\.rustup" -Recurse -Force -ErrorAction SilentlyContinue
+                Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
+                .\rustup-init.exe -y
+                Remove-Item rustup-init.exe
+                $env:Path += ";$env:USERPROFILE\.cargo\bin"
+            }
         }
     }
 
