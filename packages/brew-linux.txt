@@ -1,0 +1,39 @@
+# Homebrew packages for Linux/WSL
+# These are packages better installed via Homebrew on Linux for latest versions
+# Usage: xargs -a brew-linux.txt brew install
+
+# Modern CLI tools not available or outdated in apt
+starship
+fzf
+ripgrep
+fd
+bat
+eza
+delta
+git-absorb
+sd
+zoxide
+atuin
+xh
+tldr
+lazygit
+just
+
+# System monitoring and utilities
+procs
+bottom
+dust
+duf
+hyperfine
+tokei
+
+# Latest versions
+neovim
+tree-sitter
+gh
+mise
+
+# Development tools
+ruff
+black
+mypy

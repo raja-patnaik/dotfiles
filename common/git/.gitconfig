@@ -1,0 +1,189 @@
+[user]
+	# These should be set in .gitconfig.local
+	# name = Your Name
+	# email = your.email@example.com
+
+[init]
+	defaultBranch = main
+
+[core]
+	editor = nvim
+	autocrlf = input
+	whitespace = fix,trailing-space,cr-at-eol
+	excludesfile = ~/.gitignore_global
+	pager = delta
+
+[color]
+	ui = true
+	diff = auto
+	status = auto
+	branch = auto
+	interactive = auto
+
+[push]
+	default = current
+	autoSetupRemote = true
+	followTags = true
+
+[pull]
+	rebase = true
+	ff = only
+
+[fetch]
+	prune = true
+	pruneTag = true
+
+[merge]
+	conflictstyle = zdiff3
+	tool = nvimdiff
+
+[mergetool]
+	keepBackup = false
+	prompt = false
+
+[mergetool "nvimdiff"]
+	cmd = nvim -d $BASE $LOCAL $REMOTE $MERGED -c '$wincmd w' -c 'wincmd J'
+
+[diff]
+	tool = nvimdiff
+	colorMoved = default
+	algorithm = histogram
+
+[difftool]
+	prompt = false
+
+[rebase]
+	autoStash = true
+	autoSquash = true
+
+[rerere]
+	enabled = true
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	light = false
+	line-numbers = true
+	side-by-side = true
+	syntax-theme = "TokyoNight"
+	file-style = bold yellow ul
+	file-decoration-style = yellow box
+	hunk-header-decoration-style = cyan box
+	line-numbers-left-style = cyan
+	line-numbers-right-style = cyan
+	line-numbers-minus-style = red
+	line-numbers-plus-style = green
+	minus-style = syntax "#3f0001"
+	plus-style = syntax "#003800"
+	minus-emph-style = syntax "#801011"
+	plus-emph-style = syntax "#007800"
+
+[alias]
+	# Shortcuts
+	s = status -sb
+	st = status
+	a = add
+	aa = add --all
+	ap = add --patch
+	c = commit
+	cm = commit -m
+	ca = commit --amend
+	cam = commit --amend -m
+	can = commit --amend --no-edit
+
+	# Branches
+	b = branch
+	ba = branch -a
+	bd = branch -d
+	bD = branch -D
+	co = checkout
+	cob = checkout -b
+	sw = switch
+	swc = switch -c
+
+	# Remotes
+	f = fetch
+	fo = fetch origin
+	p = push
+	pf = push --force-with-lease
+	pu = push -u origin HEAD
+	pl = pull
+
+	# Diff
+	d = diff
+	dc = diff --cached
+	ds = diff --staged
+	dt = difftool
+	last = diff HEAD~1
+
+	# Log
+	l = log --oneline --graph --decorate
+	la = log --oneline --graph --decorate --all
+	lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+	ll = log --pretty=format:'%C(yellow)%h%Cred%d %Creset%s%Cblue [%cn]' --decorate --numstat
+	hist = log --pretty=format:'%h %ad | %s%d [%an]' --graph --date=short
+
+	# Stash
+	sl = stash list
+	sp = stash pop
+	ss = stash save
+	sa = stash apply
+	sd = stash drop
+
+	# Reset
+	unstage = reset HEAD --
+	uncommit = reset --soft HEAD~1
+	undo = reset --hard HEAD~1
+
+	# Finding
+	find = !git ls-files | grep -i
+	grep = grep -Ii
+
+	# Cleanup
+	cleanup = !git remote prune origin && git gc
+	gone = !git fetch -p && git for-each-ref --format '%(refname:short) %(upstream:track)' | awk '$2 == \"[gone]\" {print $1}' | xargs -r git branch -D
+
+	# Helpers
+	aliases = config --get-regexp alias
+	contributors = shortlog --summary --numbered
+	whoami = config user.email
+	root = rev-parse --show-toplevel
+
+	# Git flow shortcuts
+	feature = checkout -b feature/
+	bugfix = checkout -b bugfix/
+	hotfix = checkout -b hotfix/
+
+	# Absorb fixups
+	absorb = !git-absorb
+
+	# Interactive rebase
+	ri = rebase -i
+	rc = rebase --continue
+	ra = rebase --abort
+	rs = rebase --skip
+
+	# Cherry-pick
+	cp = cherry-pick
+	cpa = cherry-pick --abort
+	cpc = cherry-pick --continue
+
+	# Worktree
+	wt = worktree
+	wta = worktree add
+	wtl = worktree list
+	wtp = worktree prune
+
+[credential]
+	helper = manager-core
+
+[include]
+	path = ~/.gitconfig.local
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

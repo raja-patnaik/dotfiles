@@ -1,0 +1,90 @@
+# Example .envrc file for direnv + Nix integration
+#
+# Copy this file to your project root as `.envrc` and customize as needed.
+# direnv will automatically load the Nix environment when you enter the directory.
+#
+# Usage:
+#   1. Copy this file: cp ~/.dotfiles/.envrc.example .envrc
+#   2. Allow direnv: direnv allow
+#   3. The Nix environment will auto-load on cd into this directory
+
+# ============================================================================
+# Option 1: Use Nix Flakes (Recommended)
+# ============================================================================
+# Loads the development shell from the flake in the dotfiles repo
+# Replace the path with your actual dotfiles location
+
+use flake ~/dotfiles/nix
+
+# ============================================================================
+# Option 2: Use Nix Flakes from Current Directory
+# ============================================================================
+# If your project has its own flake.nix in the root:
+
+# use flake
+
+# ============================================================================
+# Option 3: Load Specific Nix Packages
+# ============================================================================
+# Load specific packages without a flake:
+
+# use nix --packages nodejs python3 go
+
+# ============================================================================
+# Option 4: Use Shell.nix (Traditional Nix)
+# ============================================================================
+# If you have a shell.nix in your project:
+
+# use nix
+
+# ============================================================================
+# Additional Configuration
+# ============================================================================
+
+# Set custom environment variables
+# export PROJECT_NAME="my-project"
+# export API_KEY="your-api-key"
+
+# Add local bin to PATH
+# PATH_add ./bin
+
+# Load .env file if it exists
+# dotenv_if_exists
+
+# Watch additional files for changes
+# watch_file package.json
+# watch_file Cargo.toml
+
+# ============================================================================
+# Mise/RTX Integration
+# ============================================================================
+# If you're using mise for version management:
+
+# use mise
+
+# Or for specific mise profile:
+# use mise --profile production
+
+# ============================================================================
+# Language-Specific Examples
+# ============================================================================
+
+# Python with virtualenv
+# layout python python3.11
+# export VIRTUAL_ENV=.venv
+
+# Node.js with specific version
+# use node 20
+
+# Ruby
+# use ruby 3.2.0
+
+# ============================================================================
+# Notes
+# ============================================================================
+#
+# - direnv will reload when .envrc or watched files change
+# - Always review .envrc before running `direnv allow` for security
+# - Add .envrc to .gitignore (it's project-specific)
+# - Add .envrc.example to git for team consistency
+# - Use `direnv reload` to force reload after manual changes

@@ -1,0 +1,27 @@
+# eza configuration
+# eza reads options from this file when the EZA_CONFIG_FILE environment variable is set
+# or when placed in ~/.config/eza/config
+
+# Default options for all eza commands
+--long
+--git
+--icons
+--group-directories-first
+--time-style=long-iso
+--color=auto
+--classify
+--group
+
+# Show header
+--header
+
+# Sort options
+# --sort=name
+# --sort=size
+# --sort=modified
+# --sort=created
+# --sort=accessed
+# --sort=extension
+
+# Git integration
+--git-repos
