@@ -144,7 +144,7 @@ install_packages() {
     esac
 
     # Install Rust and cargo tools
-    if ! command -v cargo &>/dev/null; then
+    if ! command -v rustup &>/dev/null; then
         log_info "Installing Rust via rustup..."
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source "$HOME/.cargo/env"
