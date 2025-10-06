@@ -116,6 +116,7 @@ backup_existing_configs() {
             local backup_path="$BACKUP_DIR/$config"
             mkdir -p "$(dirname "$backup_path")"
             cp -r "$HOME/$config" "$backup_path" 2>/dev/null || true
+            rm -rf "$HOME/$config"
             log_info "Backed up $config"
         fi
     done
