@@ -147,6 +147,13 @@ install_packages() {
     # Install Rust and cargo tools
     if ! command -v rustup &>/dev/null; then
         log_info "Installing Rust via rustup..."
+
+        # Remove old cargo installations that might conflict
+        log_info "Cleaning up old cargo installations..."
+        sudo apt-get remove -y cargo rustc 2>/dev/null || true
+        rm -rf ~/.cargo ~/.rustup ~/.local/share/cargo 2>/dev/null || true
+
+        # Now install rustup
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source "$HOME/.cargo/env"
     else
