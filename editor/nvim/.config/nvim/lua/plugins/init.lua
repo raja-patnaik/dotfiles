@@ -128,32 +128,6 @@ return {
     end,
   },
 
-  -- Better code actions
-  {
-    "nvimtools/none-ls.nvim",
-    opts = function(_, opts)
-      local null_ls = require("null-ls")
-      opts.sources = vim.list_extend(opts.sources or {}, {
-        -- Python
-        null_ls.builtins.formatting.black,
-        null_ls.builtins.formatting.isort,
-        null_ls.builtins.diagnostics.ruff,
-        null_ls.builtins.diagnostics.mypy,
-
-        -- JavaScript/TypeScript
-        null_ls.builtins.formatting.prettier,
-
-        -- Shell
-        null_ls.builtins.formatting.shfmt,
-        null_ls.builtins.diagnostics.shellcheck,
-
-        -- YAML/JSON
-        null_ls.builtins.diagnostics.yamllint,
-      })
-      return opts
-    end,
-  },
-
   -- Markdown preview
   {
     "iamcco/markdown-preview.nvim",
