@@ -150,11 +150,16 @@ install_packages() {
     sudo apt-get remove -y cargo rustc 2>/dev/null || true
     rm -rf ~/.local/share/cargo 2>/dev/null || true
 
+    # Unset old cargo environment variables and set correct paths
+    unset CARGO_HOME RUSTUP_HOME
+    export CARGO_HOME="$HOME/.cargo"
+    export RUSTUP_HOME="$HOME/.rustup"
+
     if ! command -v rustup &>/dev/null; then
         log_info "Installing Rust via rustup..."
         rm -rf ~/.cargo ~/.rustup 2>/dev/null || true
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        source "$HOME/.cargo/env"
+        [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
     else
         log_info "Updating Rust to latest stable..."
         if ! rustup update stable 2>/dev/null; then
@@ -162,7 +167,7 @@ install_packages() {
             rm -rf ~/.cargo ~/.rustup ~/.local/share/cargo 2>/dev/null || true
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         fi
-        source "$HOME/.cargo/env"
+        [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
     fi
 
     # Install cargo tools
