@@ -145,9 +145,12 @@ install_packages() {
 
     # Install Rust and cargo tools
     if ! command -v cargo &>/dev/null; then
-        log_info "Installing Rust..."
+        log_info "Installing Rust via rustup..."
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source "$HOME/.cargo/env"
+    else
+        log_info "Updating Rust to latest stable..."
+        rustup update stable
     fi
 
     # Install cargo tools

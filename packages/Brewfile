@@ -54,6 +54,7 @@ brew "python"
 brew "go"
 brew "rust"
 brew "mise"
+brew "uv"
 
 # Shell enhancements
 brew "shellcheck"
