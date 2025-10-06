@@ -50,8 +50,8 @@ vim.g.markdown_recommended_style = 0
 
 -- Set fillchars
 opt.fillchars = {
-  foldopen = "",
-  foldclose = "",
+  foldopen = "▾",
+  foldclose = "▸",
   fold = " ",
   foldsep = " ",
   diff = "╱",

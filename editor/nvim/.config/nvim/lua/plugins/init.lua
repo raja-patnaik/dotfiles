@@ -272,39 +272,108 @@ return {
   },
 
   -- Sidekick.nvim - AI assistant with Next Edit Suggestions and CLI terminal
+  -- {
+  --   "folke/sidekick.nvim",
+  --   dependencies = {
+  --     "zbirenbaum/copilot.lua",
+  --     "folke/snacks.nvim",
+  --     "nvim-treesitter/nvim-treesitter-textobjects",
+  --   },
+  --   event = "VeryLazy",
+  --   opts = {
+  --     -- Next Edit Suggestions configuration
+  --     nes = {
+  --       enabled = true,
+  --       auto_trigger = true,
+  --     },
+  --     -- AI CLI terminal configuration
+  --     cli = {
+  --       enabled = true,
+  --       tools = {
+  --         claude = {
+  --           cmd = { "claude" },
+  --           prompt = "You are a helpful AI assistant.",
+  --         },
+  --       },
+  --     },
+  --   },
+  --   keys = {
+  --     { "<leader>sa", "<cmd>lua require('sidekick').toggle()<cr>", desc = "Toggle Sidekick suggestions" },
+  --     { "<leader>st", "<cmd>lua require('sidekick').terminal()<cr>", desc = "Open Sidekick AI terminal" },
+  --     { "<leader>sc", "<cmd>lua require('sidekick').clear()<cr>", desc = "Clear Sidekick suggestions" },
+  --     { "]s", "<cmd>lua require('sidekick').next_hunk()<cr>", desc = "Next suggestion hunk" },
+  --     { "[s", "<cmd>lua require('sidekick').prev_hunk()<cr>", desc = "Previous suggestion hunk" },
+  --     { "<leader>sy", "<cmd>lua require('sidekick').accept()<cr>", desc = "Accept Sidekick suggestion" },
+  --     { "<leader>sn", "<cmd>lua require('sidekick').reject()<cr>", desc = "Reject Sidekick suggestion" },
+  --   },
+  -- },
+  
   {
     "folke/sidekick.nvim",
-    dependencies = {
-      "zbirenbaum/copilot.lua",
-      "folke/snacks.nvim",
-      "nvim-treesitter/nvim-treesitter-textobjects",
-    },
-    event = "VeryLazy",
     opts = {
-      -- Next Edit Suggestions configuration
-      nes = {
-        enabled = true,
-        auto_trigger = true,
-      },
-      -- AI CLI terminal configuration
+      -- add any options here
       cli = {
-        enabled = true,
-        tools = {
-          claude = {
-            cmd = { "claude" },
-            prompt = "You are a helpful AI assistant.",
-          },
+        mux = {
+          -- backend = "zellij",
+          enabled = false,
         },
       },
     },
+    -- stylua: ignore
     keys = {
-      { "<leader>sa", "<cmd>lua require('sidekick').toggle()<cr>", desc = "Toggle Sidekick suggestions" },
-      { "<leader>st", "<cmd>lua require('sidekick').terminal()<cr>", desc = "Open Sidekick AI terminal" },
-      { "<leader>sc", "<cmd>lua require('sidekick').clear()<cr>", desc = "Clear Sidekick suggestions" },
-      { "]s", "<cmd>lua require('sidekick').next_hunk()<cr>", desc = "Next suggestion hunk" },
-      { "[s", "<cmd>lua require('sidekick').prev_hunk()<cr>", desc = "Previous suggestion hunk" },
-      { "<leader>sy", "<cmd>lua require('sidekick').accept()<cr>", desc = "Accept Sidekick suggestion" },
-      { "<leader>sn", "<cmd>lua require('sidekick').reject()<cr>", desc = "Reject Sidekick suggestion" },
+      {
+        "<tab>",
+        function()
+          -- if there is a next edit, jump to it, otherwise apply it if any
+          if not require("sidekick").nes_jump_or_apply() then
+            return "<Tab>" -- fallback to normal tab
+          end
+        end,
+        expr = true,
+        desc = "Goto/Apply Next Edit Suggestion",
+      },
+      {
+        "<leader>aa",
+        function() require("sidekick.cli").toggle() end,
+        desc = "Sidekick Toggle CLI",
+      },
+      {
+        "<leader>as",
+        function() require("sidekick.cli").select() end,
+        -- Or to select only installed tools:
+        -- require("sidekick.cli").select({ filter = { installed = true } })
+        desc = "Select CLI",
+      },
+      {
+        "<leader>at",
+        function() require("sidekick.cli").send({ msg = "{this}" }) end,
+        mode = { "x", "n" },
+        desc = "Send This",
+      },
+      {
+        "<leader>av",
+        function() require("sidekick.cli").send({ msg = "{selection}" }) end,
+        mode = { "x" },
+        desc = "Send Visual Selection",
+      },
+      {
+        "<leader>ap",
+        function() require("sidekick.cli").prompt() end,
+        mode = { "n", "x" },
+        desc = "Sidekick Select Prompt",
+      },
+      {
+        "<c-.>",
+        function() require("sidekick.cli").focus() end,
+        mode = { "n", "x", "i", "t" },
+        desc = "Sidekick Switch Focus",
+      },
+      -- Example of a keybinding to open Claude directly
+      {
+        "<leader>ac",
+        function() require("sidekick.cli").toggle({ name = "claude", focus = true }) end,
+        desc = "Sidekick Toggle Claude",
+      },
     },
-  },
+  }
 }
