@@ -253,6 +253,10 @@ stow_configs() {
         "tools/direnv"
     )
 
+    # Ensure parent directories exist as regular directories
+    log_info "Creating parent directories..."
+    mkdir -p "$HOME/.config" "$HOME/.local" "$HOME/.cache"
+
     for component in "${components[@]}"; do
         if [[ -d "$component" ]]; then
             log_info "Stowing $component..."
@@ -260,11 +264,28 @@ stow_configs() {
             # Pre-emptively remove known target paths that will be symlinked
             # This handles cases where the user runs --only stow without backup
             cd "$DOTFILES_DIR/$component"
+
+            # Parent directories that should never be removed
+            local skip_dirs=(".config" ".local" ".cache")
+
             find . -type f -o -type d | while IFS= read -r item; do
                 # Skip the . directory itself
                 [[ "$item" == "." ]] && continue
                 # Remove leading ./
                 item="${item#./}"
+
+                # Skip parent directories - they should exist as regular directories
+                local skip=false
+                for skip_dir in "${skip_dirs[@]}"; do
+                    if [[ "$item" == "$skip_dir" ]]; then
+                        skip=true
+                        break
+                    fi
+                done
+                if [[ "$skip" == true ]]; then
+                    continue
+                fi
+
                 target_path="$HOME/$item"
                 if [[ -e "$target_path" ]] && [[ ! -L "$target_path" ]]; then
                     log_info "Removing existing path before stow: $item"
