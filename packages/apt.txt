@@ -22,7 +22,6 @@ python3-venv
 nodejs
 npm
 golang
-cargo
 
 # Libraries and dependencies
 libssl-dev

@@ -50,6 +50,7 @@
           direnv        # per-directory env vars
           mise          # runtime version manager
           just          # command runner
+          uv            # fast Python package installer
 
           # Git tools
           delta         # beautiful diffs

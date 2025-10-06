@@ -38,6 +38,7 @@
     direnv
     mise
     just
+    uv
 
     # Git tools
     delta
