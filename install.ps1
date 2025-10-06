@@ -115,7 +115,11 @@ function Backup-ExistingConfigs {
             "$env:USERPROFILE\.config\starship.toml",
             "$env:USERPROFILE\.config\nvim",
             "$env:LOCALAPPDATA\nvim",
-            "$env:APPDATA\lazygit"
+            "$env:APPDATA\lazygit",
+            "$env:USERPROFILE\.config\atuin",
+            "$env:USERPROFILE\.config\bat",
+            "$env:USERPROFILE\.config\direnv",
+            "$env:USERPROFILE\.ezarc"
         )
 
         foreach ($config in $configs) {
@@ -125,6 +129,7 @@ function Backup-ExistingConfigs {
                 $backupDir = Split-Path $backupPath -Parent
                 New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
                 Copy-Item -Path $config -Destination $backupPath -Recurse -Force
+                Remove-Item -Path $config -Recurse -Force
                 Write-Info "Backed up $config"
             }
         }
@@ -161,13 +166,18 @@ function Install-Packages {
     }
 
     # Install Rust if not present
-    if (-not (Test-CommandExists cargo)) {
-        Write-Info "Installing Rust..."
+    if (-not (Test-CommandExists rustup)) {
+        Write-Info "Installing Rust via rustup..."
         if (-not $DryRun) {
             Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
             .\rustup-init.exe -y
             Remove-Item rustup-init.exe
             $env:Path += ";$env:USERPROFILE\.cargo\bin"
+        }
+    } else {
+        Write-Info "Updating Rust to latest stable..."
+        if (-not $DryRun) {
+            rustup update stable
         }
     }
 
@@ -260,6 +270,18 @@ function Install-Configs {
 
         # LazyGit
         "$DotfilesDir\tools\lazygit\.config\lazygit" = "$env:APPDATA\lazygit"
+
+        # Atuin
+        "$DotfilesDir\tools\atuin\.config\atuin" = "$env:USERPROFILE\.config\atuin"
+
+        # Bat
+        "$DotfilesDir\tools\bat\.config\bat" = "$env:USERPROFILE\.config\bat"
+
+        # Direnv
+        "$DotfilesDir\tools\direnv\.config\direnv" = "$env:USERPROFILE\.config\direnv"
+
+        # Eza
+        "$DotfilesDir\tools\eza\.ezarc" = "$env:USERPROFILE\.ezarc"
 
         # Mise/rtx
         "$DotfilesDir\common\mise\.config\mise" = "$env:USERPROFILE\.config\mise"
