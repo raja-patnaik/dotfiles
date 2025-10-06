@@ -145,20 +145,24 @@ install_packages() {
     esac
 
     # Install Rust and cargo tools
+    # Always clean up old apt-based cargo installations first
+    log_info "Cleaning up old apt cargo installations..."
+    sudo apt-get remove -y cargo rustc 2>/dev/null || true
+    rm -rf ~/.local/share/cargo 2>/dev/null || true
+
     if ! command -v rustup &>/dev/null; then
         log_info "Installing Rust via rustup..."
-
-        # Remove old cargo installations that might conflict
-        log_info "Cleaning up old cargo installations..."
-        sudo apt-get remove -y cargo rustc 2>/dev/null || true
-        rm -rf ~/.cargo ~/.rustup ~/.local/share/cargo 2>/dev/null || true
-
-        # Now install rustup
+        rm -rf ~/.cargo ~/.rustup 2>/dev/null || true
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source "$HOME/.cargo/env"
     else
         log_info "Updating Rust to latest stable..."
-        rustup update stable
+        if ! rustup update stable 2>/dev/null; then
+            log_warning "Rustup update failed, reinstalling..."
+            rm -rf ~/.cargo ~/.rustup ~/.local/share/cargo 2>/dev/null || true
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        fi
+        source "$HOME/.cargo/env"
     fi
 
     # Install cargo tools
