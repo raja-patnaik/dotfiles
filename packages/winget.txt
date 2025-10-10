@@ -9,7 +9,7 @@ Neovim.Neovim
 Git.Git
 GitHub.cli
 Microsoft.VisualStudioCode
-Python.Python.3.12
+Python.Python.3.14
 OpenJS.NodeJS.LTS
 GoLang.Go
 Rustlang.Rust.MSVC

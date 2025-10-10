@@ -236,22 +236,36 @@ function New-SymbolicLink {
         New-Item -ItemType Directory -Force -Path $parent | Out-Null
     }
 
-    # Create symbolic link
+    # Determine if target is a directory
     $isDirectory = Test-Path -Path $Target -PathType Container
-    if ($isDirectory) {
-        cmd /c mklink /D "`"$Path`"" "`"$Target`"" 2>$null
-    } else {
-        cmd /c mklink "`"$Path`"" "`"$Target`"" 2>$null
+
+    # If we have admin privileges, try to create symbolic link
+    if ($script:IsAdmin) {
+        try {
+            if ($isDirectory) {
+                $null = cmd /c mklink /D "`"$Path`"" "`"$Target`"" 2>&1
+            } else {
+                $null = cmd /c mklink "`"$Path`"" "`"$Target`"" 2>&1
+            }
+
+            if ($LASTEXITCODE -eq 0) {
+                return
+            }
+        } catch {
+            # Symlink failed, fall through to copy
+        }
+
+        # Clean up failed symlink attempt
+        if (Test-Path $Path) {
+            Remove-Item $Path -Force -Recurse -ErrorAction SilentlyContinue
+        }
     }
 
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "Failed to create symbolic link from $Path to $Target"
-        Write-Info "Copying instead..."
-        if ($isDirectory) {
-            Copy-Item -Path $Target -Destination $Path -Recurse -Force
-        } else {
-            Copy-Item -Path $Target -Destination $Path -Force
-        }
+    # Copy files instead (either no admin or symlink failed)
+    if ($isDirectory) {
+        Copy-Item -Path $Target -Destination $Path -Recurse -Force
+    } else {
+        Copy-Item -Path $Target -Destination $Path -Force
     }
 }
 
