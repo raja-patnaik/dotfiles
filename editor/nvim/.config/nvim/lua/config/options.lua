@@ -48,6 +48,9 @@ opt.wrap = false              -- Disable line wrap
 -- Fix markdown indentation settings
 vim.g.markdown_recommended_style = 0
 
+-- Disable UI animations like smooth scrolling
+vim.g.snacks_animate = false
+
 -- Set fillchars
 opt.fillchars = {
   foldopen = "▾",

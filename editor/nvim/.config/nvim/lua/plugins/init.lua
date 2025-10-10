@@ -119,14 +119,6 @@ return {
     },
   },
 
-  -- Copilot completion source for nvim-cmp
-  {
-    "zbirenbaum/copilot-cmp",
-    dependencies = { "zbirenbaum/copilot.lua" },
-    config = function()
-      require("copilot_cmp").setup()
-    end,
-  },
 
   -- Markdown preview
   {
