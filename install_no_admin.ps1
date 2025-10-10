@@ -107,14 +107,19 @@ function Install-Scoop {
         }
     } else {
         Write-Info "Scoop already installed"
-        # Ensure buckets are added
+        # Ensure buckets are added (silently ignore if they already exist)
         if (-not $DryRun) {
-            $buckets = scoop bucket list
-            if ($buckets -notcontains "extras") {
-                scoop bucket add extras
+            try {
+                scoop bucket add extras 2>&1 | Out-Null
+                Write-Info "Added extras bucket"
+            } catch {
+                # Bucket already exists, ignore
             }
-            if ($buckets -notcontains "nerd-fonts") {
-                scoop bucket add nerd-fonts
+            try {
+                scoop bucket add nerd-fonts 2>&1 | Out-Null
+                Write-Info "Added nerd-fonts bucket"
+            } catch {
+                # Bucket already exists, ignore
             }
         }
     }
