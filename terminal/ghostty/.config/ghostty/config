@@ -1,0 +1,133 @@
+# Ghostty Terminal Configuration
+# https://ghostty.org/docs/config
+
+# ============================================================================
+# Theme and Colors
+# ============================================================================
+
+# Use Tokyo Night theme (matches WezTerm config)
+theme = tokyonight
+
+# Alternative themes you can try:
+# theme = rose-pine
+# theme = catppuccin-mocha
+# theme = dracula
+# theme = nord
+
+# Background opacity (0.0 - 1.0)
+background-opacity = 0.95
+
+# ============================================================================
+# Font Configuration
+# ============================================================================
+
+# Font family - using JetBrains Mono to match other configs
+font-family = "JetBrains Mono"
+# Fallback fonts
+font-family-bold = "JetBrains Mono"
+font-family-italic = "JetBrains Mono"
+font-family-bold-italic = "JetBrains Mono"
+
+# Font size
+font-size = 13
+
+# Enable font ligatures
+# font-feature = +calt
+# font-feature = +liga
+# font-feature = +clig
+
+# ============================================================================
+# Window Configuration
+# ============================================================================
+
+# Window padding
+window-padding-x = 10
+window-padding-y = 10
+
+# Window decorations (auto, none, client, server)
+window-decoration = auto
+
+# Window title
+window-title-font-family = "JetBrains Mono"
+
+# ============================================================================
+# Shell and Command
+# ============================================================================
+
+# Enable shell integration for better prompt detection
+shell-integration = detect
+
+# Detect shell from environment
+# Ghostty will use $SHELL by default
+
+# ============================================================================
+# Cursor
+# ============================================================================
+
+# Cursor style (block, bar, underline)
+cursor-style = block
+
+# Cursor blink
+cursor-style-blink = true
+
+# ============================================================================
+# Mouse
+# ============================================================================
+
+# Click to open URLs
+mouse-hide-while-typing = true
+
+# ============================================================================
+# Copy/Paste
+# ============================================================================
+
+# Copy on select
+copy-on-select = false
+
+# ============================================================================
+# Scrollback
+# ============================================================================
+
+# Scrollback lines
+scrollback-limit = 10000
+
+# ============================================================================
+# Keybindings
+# ============================================================================
+
+# Tab management (tmux-like with Cmd key for macOS)
+keybind = cmd+t=new_tab
+keybind = cmd+w=close_surface
+keybind = cmd+shift+]= next_tab
+keybind = cmd+shift+[= previous_tab
+
+# Split panes (tmux-like)
+keybind = cmd+d=new_split:right
+keybind = cmd+shift+d=new_split:down
+
+# Pane navigation
+keybind = cmd+h=goto_split:left
+keybind = cmd+j=goto_split:bottom
+keybind = cmd+k=goto_split:top
+keybind = cmd+l=goto_split:right
+
+# Font size adjustments
+keybind = cmd+plus=increase_font_size:1
+keybind = cmd+minus=decrease_font_size:1
+keybind = cmd+0=reset_font_size
+
+# Reload config
+keybind = cmd+shift+r=reload_config
+
+# Toggle fullscreen
+keybind = cmd+ctrl+f=toggle_fullscreen
+
+# ============================================================================
+# Miscellaneous
+# ============================================================================
+
+# Confirm before closing window with running programs
+confirm-close-surface = true
+
+# Auto-update checking
+auto-update = check
