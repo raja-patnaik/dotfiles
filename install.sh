@@ -256,6 +256,7 @@ stow_configs() {
         "shell/bash"
         "shell/starship"
         "terminal/wezterm"
+        "terminal/ghostty"
         "editor/nvim"
         "tools/tmux"
         "tools/bat"
