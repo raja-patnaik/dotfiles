@@ -102,7 +102,7 @@ function Install-Scoop {
 
                 Write-Success "Scoop installed successfully to $env:USERPROFILE\scoop"
             } catch {
-                Write-Error "Failed to install Scoop: $_"
+                Write-Error "Failed to install Scoop`: ${_}"
             }
         }
     } else {
@@ -181,7 +181,7 @@ function Install-Packages {
                     try {
                         scoop install $package
                     } catch {
-                        Write-Warning "Failed to install $package via Scoop: $_"
+                        Write-Warning "Failed to install ${package} via Scoop`: ${_}"
                     }
                 } else {
                     Write-Info "$package already installed"
@@ -204,7 +204,7 @@ function Install-Packages {
                     # Use --scope user to install without admin rights
                     winget install --id $package --scope user --accept-package-agreements --accept-source-agreements --silent
                 } catch {
-                    Write-Warning "Failed to install $package via WinGet: $_"
+                    Write-Warning "Failed to install ${package} via WinGet`: ${_}"
                 }
             } else {
                 Write-Info "[DRY RUN] Would install: $package"
@@ -229,7 +229,7 @@ function Install-Packages {
 
                 Write-Success "Rust installed to $env:CARGO_HOME"
             } catch {
-                Write-Warning "Failed to install Rust: $_"
+                Write-Warning "Failed to install Rust`: ${_}"
             }
         }
     } else {
@@ -238,7 +238,7 @@ function Install-Packages {
             try {
                 rustup update stable
             } catch {
-                Write-Warning "Failed to update Rust: $_"
+                Write-Warning "Failed to update Rust`: ${_}"
             }
         }
     }
@@ -263,7 +263,7 @@ function Install-Packages {
                     try {
                         cargo install $tool.name
                     } catch {
-                        Write-Warning "Failed to install $($tool.name): $_"
+                        Write-Warning "Failed to install $($tool.name)`: ${_}"
                     }
                 }
             } else {
@@ -280,7 +280,7 @@ function Install-Packages {
                 try {
                     npm install -g tree-sitter-cli
                 } catch {
-                    Write-Warning "Failed to install tree-sitter CLI: $_"
+                    Write-Warning "Failed to install tree-sitter CLI`: ${_}"
                 }
             }
         }
@@ -398,7 +398,7 @@ function Setup-PowerShell {
                     Install-Module -Name $module -Force -AllowClobber -Scope CurrentUser -ErrorAction Stop
                     Write-Success "Installed $module"
                 } catch {
-                    Write-Warning "Failed to install $module: $_"
+                    Write-Warning "Failed to install ${module}`: ${_}"
                 }
             }
         } else {
@@ -433,7 +433,7 @@ function Setup-Neovim {
                     scoop install neovim
                     Write-Success "Neovim installed"
                 } catch {
-                    Write-Warning "Failed to install Neovim via Scoop: $_"
+                    Write-Warning "Failed to install Neovim via Scoop`: ${_}"
                     return
                 }
             } else {
