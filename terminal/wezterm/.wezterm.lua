@@ -317,38 +317,55 @@ end
 -- Status Bar
 -- ============================================================================
 
+local function escape_lua(s)
+  return (s:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
+end
+
 wezterm.on('update-right-status', function(window, pane)
   local cells = {}
 
-  -- Show workspace name
-  local workspace = window:active_workspace()
-  table.insert(cells, workspace)
+  -- workspace
+  table.insert(cells, window:active_workspace())
 
-  -- Show current working directory
-  local cwd = pane:get_current_working_dir()
-  if cwd then
-    cwd = cwd:gsub('file://[^/]*', '')
-    local home = os.getenv('HOME') or os.getenv('USERPROFILE')
-    if home then
-      cwd = cwd:gsub(home, '~')
+  -- cwd (Url → path → tidy → ~)
+  local cwd = ""
+  do
+    local uri = pane:get_current_working_dir()
+    if uri then
+      cwd = uri.file_path or tostring(uri)
     end
-    table.insert(cells, cwd)
+    cwd = tostring(cwd)
+
+    -- If tostring(uri) returned a URL, strip scheme/host.
+    cwd = cwd:gsub('^file://[^/]*', '')
+
+    -- Normalize slashes & fix /C:/ on Windows
+    cwd = cwd:gsub("\\", "/")
+             :gsub("^/([A-Za-z]:/)", "%1")
+
+    -- Home → ~
+    local home = os.getenv("HOME") or os.getenv("USERPROFILE") or ""
+    if home ~= "" then
+      home = home:gsub("\\", "/")
+      cwd = cwd:gsub("^" .. escape_lua(home), "~")
+    end
+
+    if cwd ~= "" then table.insert(cells, cwd) end
   end
 
-  -- Show time
-  local date = wezterm.strftime '%H:%M'
-  table.insert(cells, date)
+  -- time
+  table.insert(cells, wezterm.strftime("%H:%M"))
 
-  -- Format the cells
+  -- format
   local formatted = {}
   for _, cell in ipairs(cells) do
-    table.insert(formatted, ' ' .. cell .. ' ')
+    table.insert(formatted, " " .. tostring(cell) .. " ")
   end
 
-  window:set_right_status(wezterm.format {
-    { Foreground = { Color = '#808080' } },
-    { Text = table.concat(formatted, ' | ') },
-  })
+  window:set_right_status(wezterm.format({
+    { Foreground = { Color = "#808080" } },
+    { Text = table.concat(formatted, " | ") },
+  }))
 end)
 
 -- ============================================================================
@@ -383,6 +400,17 @@ config.animation_fps = 60
 config.max_fps = 60
 config.front_end = 'WebGpu'
 config.webgpu_power_preference = 'HighPerformance'
+
+-- ============================================================================
+-- Startup Behavior
+-- ============================================================================
+
+-- Start maximized/fullscreen
+wezterm.on('gui-startup', function(cmd)
+  local tab, pane, window = mux.spawn_window(cmd or {})
+  window:gui_window():maximize()
+
+end)
 
 -- ============================================================================
 -- Return Configuration

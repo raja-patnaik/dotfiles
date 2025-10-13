@@ -156,7 +156,7 @@ keybinding:
     prevBlock-alt: "h"
     nextBlock-alt: "l"
     nextBlock-alt2: "<tab>"
-    prevBlock-alt2: "<s-tab>"
+    prevBlock-alt2: "<backtab>"
     jumpToBlock: ["1", "2", "3", "4", "5"]
     nextMatch: "n"
     prevMatch: "N"

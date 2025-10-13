@@ -273,14 +273,24 @@ return {
   --     { "<leader>sn", "<cmd>lua require('sidekick').reject()<cr>", desc = "Reject Sidekick suggestion" },
   --   },
   -- },
-  
+  -- Neovim ↔ tmux navigator
+  {
+    "christoomey/vim-tmux-navigator",
+    lazy = false,
+    init = function()
+      -- Optional: disable when a tmux pane is zoomed (prevents surprises)
+      vim.g.tmux_navigator_disable_when_zoomed = 1
+      -- Optional: don't save cursor on pane switch
+      -- vim.g.tmux_navigator_save_on_switch = 0
+    end,
+  },
   {
     "folke/sidekick.nvim",
     opts = {
       -- add any options here
       cli = {
         mux = {
-          -- backend = "zellij",
+          backend = "tmux",
           enabled = false,
         },
       },

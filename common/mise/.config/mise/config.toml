@@ -2,104 +2,60 @@
 # https://mise.jdx.dev/
 
 [settings]
-# Automatically install missing tools when entering directories
 experimental = true
 always_keep_download = false
 always_keep_install = false
 legacy_version_file = true
 legacy_version_file_disable_tools = []
-
-# Plugin repository
-plugin_repository = "https://github.com/asdf-vm/asdf-plugins"
-
-# Installation settings
 jobs = 4
 raw = false
 yes = false
-
-# Display settings
 verbose = false
 quiet = false
 asdf_compat = false
 disable_default_shorthands = false
 disable_tools = []
-
-# Cache settings
-cache_duration = "24h"
-
-# Environment settings
-env_path = "PATH"
-
-# Shims
-shims_dir = "~/.local/share/mise/shims"
-
-# Trust settings
-trusted_config_paths = [
-  "~/Projects",
-  "~/work",
-  "~/dev",
-]
-
+trusted_config_paths = ["~/Projects", "~/work", "~/dev"]
 paranoid = false
 
-[tools]
-# Global tool versions
-# These can be overridden per-project with .mise.toml or .tool-versions
+# ⬇️ NEW: correct cache setting
+cache_prune_age = "24h"
 
-# Languages
+[tools]
 node = "lts"
 python = ["3.11", "3.12"]
 go = "latest"
 rust = "stable"
 ruby = "3.2"
 java = "21"
-
-# Tools
 terraform = "latest"
 kubectl = "latest"
 helm = "latest"
 aws-cli = "latest"
 gcloud = "latest"
 azure-cli = "latest"
-
-# Development tools
 github-cli = "latest"
 jq = "latest"
 yq = "latest"
 direnv = "latest"
 
-[alias]
-# Tool version aliases
-node = {
-  lts = "20",
-  latest = "21",
-}
+[alias.node.versions]
+lts = "20"
+latest = "21"
 
-python = {
-  latest = "3.12",
-  system = "/usr/bin/python3",
-}
+[alias.python.versions]
+latest = "3.12"
+system = "/usr/bin/python3"
 
 [env]
-# Global environment variables
-
-# Node.js
 NODE_ENV = "development"
 NPM_CONFIG_PREFIX = "~/.npm-global"
-
-# Python
 PYTHONDONTWRITEBYTECODE = "1"
 PYTHONUNBUFFERED = "1"
-
-# Go
 GO111MODULE = "on"
 GOPATH = "$HOME/go"
-
-# Rust
 CARGO_HOME = "$HOME/.cargo"
 RUSTUP_HOME = "$HOME/.rustup"
-
-# Editor
 EDITOR = "nvim"
 VISUAL = "nvim"
 
@@ -117,10 +73,7 @@ run = "mise upgrade"
 
 [tasks.clean]
 description = "Clean mise cache and unused versions"
-run = [
-  "mise cache clear",
-  "mise prune --yes",
-]
+run = ["mise cache clear", "mise prune --yes"]
 
 [tasks.doctor]
 description = "Check mise installation and configuration"
@@ -130,23 +83,23 @@ run = "mise doctor"
 description = "Install global npm/pip packages"
 run = [
   "npm install -g pnpm yarn npm-check-updates",
-  "pip install --upgrade pip setuptools wheel pipx",
+  "pip install --upgrade pip setuptools wheel pipx"
 ]
 
-[[hook-env]]
-# Shell hooks that run when entering directories
-# Example: automatically activate Python venv
+[hooks.enter]
+# run in current shell
 shell = "bash"
-run = """
+script = """
 if [ -f .venv/bin/activate ]; then
   source .venv/bin/activate
 fi
 """
 
-[[hook-env]]
+# (Optional) mirror for zsh; you can keep just one if you like
+[hooks.enter.zsh]
 shell = "zsh"
-run = """
+script = """
 if [ -f .venv/bin/activate ]; then
   source .venv/bin/activate
 fi
-"""
+""""
