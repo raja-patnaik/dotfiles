@@ -44,6 +44,6 @@ xclip
 gh
 git-lfs
 
-# Docker
-docker.io
-docker-compose
+# Docker - installed separately via install_docker() function
+# docker.io
+# docker-compose

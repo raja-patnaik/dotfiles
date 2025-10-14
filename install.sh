@@ -436,27 +436,31 @@ install_docker() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     if ! command -v docker &>/dev/null; then
       log_info "Installing Docker..."
-      # Docker is in apt.txt and will be installed via install_packages
-      log_info "Docker will be installed via apt packages"
-    else
-      log_info "Docker already installed"
-    fi
-
-    # Configure Docker to run without sudo
-    if ! groups | grep -q docker; then
-      log_info "Adding user to docker group..."
-      sudo usermod -aG docker "$USER"
-      log_warning "You need to log out and back in for docker group changes to take effect"
-    fi
-
-    # Install zsh Docker completions
-    if command -v zsh &>/dev/null; then
-      local completion_dir="/usr/share/zsh/vendor-completions"
-      if [[ ! -f "$completion_dir/_docker" ]]; then
-        log_info "Installing zsh Docker completions..."
-        sudo mkdir -p "$completion_dir"
-        sudo curl -fsSL https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o "$completion_dir/_docker"
+      if command -v apt-get &>/dev/null; then
+        sudo apt-get install -y docker.io docker-compose
+      else
+        log_warning "Cannot install Docker: apt-get not found"
+        return
       fi
+
+      # Configure Docker to run without sudo
+      if ! groups | grep -q docker; then
+        log_info "Adding user to docker group..."
+        sudo usermod -aG docker "$USER"
+        log_warning "You need to log out and back in for docker group changes to take effect"
+      fi
+
+      # Install zsh Docker completions
+      if command -v zsh &>/dev/null; then
+        local completion_dir="/usr/share/zsh/vendor-completions"
+        if [[ ! -f "$completion_dir/_docker" ]]; then
+          log_info "Installing zsh Docker completions..."
+          sudo mkdir -p "$completion_dir"
+          sudo curl -fsSL https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o "$completion_dir/_docker"
+        fi
+      fi
+    else
+      log_info "Docker already installed, skipping installation"
     fi
   elif [[ "$OS_TYPE" == "macos" ]]; then
     log_info "Docker Desktop will be installed via Homebrew cask"
