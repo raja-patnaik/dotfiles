@@ -155,7 +155,7 @@ install_packages() {
   linux | wsl)
     if command -v apt-get &>/dev/null && [[ -f "$DOTFILES_DIR/packages/apt.txt" ]]; then
       log_info "Installing apt packages..."
-      cat "$DOTFILES_DIR/packages/apt.txt" | grep -v '^\s*#' | grep -v '^\s*$' | xargs DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a sudo apt-get install -y
+      cat "$DOTFILES_DIR/packages/apt.txt" | grep -v '^\s*#' | grep -v '^\s*$' | xargs sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y
     fi
     if command -v brew &>/dev/null && [[ -f "$DOTFILES_DIR/packages/brew-linux.txt" ]]; then
       log_info "Installing Homebrew packages..."
