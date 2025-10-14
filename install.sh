@@ -391,7 +391,7 @@ EOF
 
 install_nodejs() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-    if ! command -v node &>/dev/null || [[ $(node --version | cut -d'v' -f2 | cut -d'.' -f1) -lt 22 ]]; then
+    if ! command -v node &>/dev/null; then
       log_info "Installing Node.js v22.x..."
 
       # Install from NodeSource repository
@@ -400,7 +400,7 @@ install_nodejs() {
 
       log_success "Node.js $(node --version) installed"
     else
-      log_info "Node.js $(node --version) already installed"
+      log_info "Node.js $(node --version) already installed, skipping installation"
     fi
 
     # Configure npm to use Linux-only global prefix (critical for WSL)
