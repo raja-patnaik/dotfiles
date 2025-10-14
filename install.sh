@@ -105,7 +105,7 @@ install_stow() {
       brew install stow
     elif [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
       if command -v apt-get &>/dev/null; then
-        sudo apt-get update && sudo apt-get install -y stow
+        sudo apt-get update && DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a sudo apt-get install -y stow
       elif command -v yum &>/dev/null; then
         sudo yum install -y stow
       elif command -v brew &>/dev/null; then
@@ -155,7 +155,7 @@ install_packages() {
   linux | wsl)
     if command -v apt-get &>/dev/null && [[ -f "$DOTFILES_DIR/packages/apt.txt" ]]; then
       log_info "Installing apt packages..."
-      cat "$DOTFILES_DIR/packages/apt.txt" | grep -v '^\s*#' | grep -v '^\s*$' | xargs sudo apt-get install -y
+      cat "$DOTFILES_DIR/packages/apt.txt" | grep -v '^\s*#' | grep -v '^\s*$' | xargs DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a sudo apt-get install -y
     fi
     if command -v brew &>/dev/null && [[ -f "$DOTFILES_DIR/packages/brew-linux.txt" ]]; then
       log_info "Installing Homebrew packages..."
@@ -167,7 +167,7 @@ install_packages() {
   # Install Rust and cargo tools
   # Always clean up old apt-based cargo installations first
   log_info "Cleaning up old apt cargo installations..."
-  sudo apt-get remove -y cargo rustc 2>/dev/null || true
+  DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a sudo apt-get remove -y cargo rustc 2>/dev/null || true
   rm -rf ~/.local/share/cargo 2>/dev/null || true
 
   # Unset old cargo environment variables and set correct paths
@@ -396,7 +396,7 @@ install_nodejs() {
 
       # Install from NodeSource repository
       curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-      sudo apt-get install -y nodejs
+      DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a sudo apt-get install -y nodejs
 
       log_success "Node.js $(node --version) installed"
     else
@@ -437,7 +437,7 @@ install_docker() {
     if ! command -v docker &>/dev/null; then
       log_info "Installing Docker..."
       if command -v apt-get &>/dev/null; then
-        sudo apt-get install -y docker.io docker-compose
+        DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a sudo apt-get install -y docker.io docker-compose
       else
         log_warning "Cannot install Docker: apt-get not found"
         return
