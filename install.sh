@@ -79,12 +79,18 @@ install_homebrew() {
   if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     if ! command -v brew &>/dev/null; then
       log_info "Installing Homebrew..."
-      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      NONINTERACTIVE=1 CI=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
       # Add Homebrew to PATH
       if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.profile"
+        # Check both system and user Homebrew locations
+        if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.profile"
+        elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
+          eval "$($HOME/.linuxbrew/bin/brew shellenv)"
+          echo 'eval "$($HOME/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.profile"
+        fi
       fi
     else
       log_info "Homebrew already installed"
