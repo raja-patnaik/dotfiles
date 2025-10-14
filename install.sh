@@ -339,7 +339,11 @@ setup_shell() {
   if [[ "$SHELL" != *"zsh"* ]]; then
     if command -v zsh &>/dev/null; then
       log_info "Changing default shell to zsh..."
-      chsh -s "$(which zsh)"
+      if chsh -s "$(which zsh)" 2>/dev/null; then
+        log_success "Default shell changed to zsh"
+      else
+        log_warning "Could not change default shell (requires password). Run 'chsh -s $(which zsh)' manually or just type 'zsh' to start"
+      fi
     fi
   fi
 
