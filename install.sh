@@ -342,7 +342,20 @@ setup_shell() {
       if timeout 2 chsh -s "$(which zsh)" 2>/dev/null; then
         log_success "Default shell changed to zsh"
       else
-        log_warning "Could not change default shell (requires password). Run 'chsh -s $(which zsh)' manually or just type 'zsh' to start"
+        log_warning "Could not change default shell (requires password). Adding zsh auto-start to ~/.bashrc instead..."
+        # Add auto-start to bash profile as fallback
+        if ! grep -q "exec zsh" ~/.bashrc 2>/dev/null; then
+          cat >> ~/.bashrc << 'EOF'
+
+# Auto-start zsh if available
+if [ -t 1 ] && command -v zsh &>/dev/null; then
+  exec zsh
+fi
+EOF
+          log_success "Zsh will auto-start on next login"
+        else
+          log_info "Zsh auto-start already configured in ~/.bashrc"
+        fi
       fi
     fi
   fi
