@@ -362,24 +362,18 @@ install_nix() {
   if ! command -v nix &>/dev/null; then
     log_info "Installing Nix..."
     log_warning "Nix installation requires sudo and will modify system files"
-    read -p "Continue with Nix installation? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-      if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-        # Install Nix with flakes enabled
-        sh <(curl -L https://nixos.org/nix/install) --daemon --yes
+    if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+      # Install Nix with flakes enabled
+      sh <(curl -L https://nixos.org/nix/install) --daemon --yes
 
-        # Enable flakes and nix-command
-        mkdir -p ~/.config/nix
-        cat >~/.config/nix/nix.conf <<EOF
+      # Enable flakes and nix-command
+      mkdir -p ~/.config/nix
+      cat >~/.config/nix/nix.conf <<EOF
 experimental-features = nix-command flakes
 EOF
-        log_success "Nix installed! Restart your shell to use it."
-      else
-        log_warning "Nix installation not supported on this platform"
-      fi
+      log_success "Nix installed! Restart your shell to use it."
     else
-      log_info "Skipping Nix installation"
+      log_warning "Nix installation not supported on this platform"
     fi
   else
     log_info "Nix already installed"
