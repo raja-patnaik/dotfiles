@@ -301,6 +301,65 @@ fkill() {
     fi
 }
 
+# Tmux session manager - attach or create session named after current directory
+tm() {
+  local session_name
+  session_name=$(basename "$PWD" | tr '.' '_')
+  printf '\033]0;💻 %s\007' "$session_name"
+  if tmux has-session -t "$session_name" 2>/dev/null; then
+    tmux attach-session -t "$session_name"
+  else
+    tmux new-session -s "$session_name"
+  fi
+}
+
+# Tmux session picker - list sessions with fzf or create new one
+tp() {
+    if ! command -v tmux &>/dev/null; then
+        echo "tmux is not installed"
+        return 1
+    fi
+
+    if [ "$(tmux list-sessions 2>/dev/null | wc -l)" -eq 0 ]; then
+        local session_name
+        session_name="$(basename "$PWD" | tr '.' '_')"
+        printf '\033]0;💻 %s\007' "$session_name"
+        tmux new-session -s "$session_name"
+        return
+    fi
+
+    if [ $# -eq 0 ]; then
+        local selected_session
+        selected_session="$(tmux list-sessions -F "#{session_attached} #{session_name}#{?session_attached, (attached),}" \
+            | sort -rn \
+            | sed 's/^[0-9]* //' \
+            | fzf --height 40% --reverse \
+            | sed 's/ (attached)$//')"
+
+        if [ -n "$selected_session" ]; then
+            printf '\033]0;💻 %s\007' "$selected_session"
+            tmux attach-session -t "$selected_session"
+        else
+            local session_name
+            session_name="$(basename "$PWD" | tr '.' '_')"
+            printf '\033]0;💻 %s\007' "$session_name"
+            if tmux has-session -t "$session_name" 2>/dev/null; then
+                tmux attach-session -t "$session_name"
+            else
+                tmux new-session -s "$session_name"
+            fi
+        fi
+    else
+        local session_name="$1"
+        printf '\033]0;💻 %s\007' "$session_name"
+        if tmux has-session -t "$session_name" 2>/dev/null; then
+            tmux attach-session -t "$session_name"
+        else
+            tmux new-session -s "$session_name"
+        fi
+    fi
+}
+
 # ============================================================================
 # Local Configuration
 # ============================================================================
