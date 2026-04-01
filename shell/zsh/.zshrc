@@ -230,6 +230,8 @@ alias t='tmux'
 alias ta='tmux attach'
 alias tl='tmux list-sessions'
 alias tn='tmux new-session -s'
+alias tk='tmux kill-session -t'
+alias tka='tmux kill-server'
 
 # Docker
 alias d='docker'
@@ -303,14 +305,14 @@ fkill() {
 
 # Tmux session manager - attach or create session named after current directory
 tm() {
-  local session_name
-  session_name=$(basename "$PWD" | tr '.' '_')
-  printf '\033]0;💻 %s\007' "$session_name"
-  if tmux has-session -t "$session_name" 2>/dev/null; then
-    tmux attach-session -t "$session_name"
-  else
-    tmux new-session -s "$session_name"
-  fi
+    local session_name
+    session_name=$(basename "$PWD" | tr '.' '_')
+    printf '\033]0;💻 %s\007' "$session_name"
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        tmux attach-session -t "$session_name"
+    else
+        tmux new-session -s "$session_name"
+    fi
 }
 
 # Tmux session picker - list sessions with fzf or create new one
@@ -358,6 +360,140 @@ tp() {
             tmux new-session -s "$session_name"
         fi
     fi
+}
+
+# Tmux + nvim - like tm but launches neovim inside the session
+tv() {
+    local session_name
+    session_name=$(basename "$PWD" | tr '.' '_')
+
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        tmux attach-session -t "$session_name"
+    else
+        if [ $# -gt 0 ]; then
+            tmux new-session -s "$session_name" "nvim $1"
+        else
+            tmux new-session -s "$session_name" "nvim"
+        fi
+    fi
+}
+
+# Tmux remote session manager over SSH
+# Usage: tms [session_name]
+#   no args  -> fzf pick from remote sessions
+#   with arg -> attach/create that session on remote
+# Set TMUX_REMOTE_HOST in ~/.zshrc.local (defaults to empty)
+tms() {
+    local remote="${TMUX_REMOTE_HOST:?Set TMUX_REMOTE_HOST in ~/.zshrc.local}"
+
+    if [ $# -gt 0 ]; then
+        local session_name="$1"
+        printf '\033]0;🔗 %s\007' "$session_name"
+        ssh -t "$remote" "tmux attach-session -t '$session_name' 2>/dev/null || tmux new-session -s '$session_name'"
+        return
+    fi
+
+    # Get remote sessions
+    local sessions
+    sessions=$(ssh "$remote" "tmux list-sessions -F '#{session_name}'" 2>/dev/null)
+
+    if [ -z "$sessions" ]; then
+        local session_name
+        session_name=$(basename "$PWD" | tr '.' '_')
+        printf '\033]0;🔗 %s\007' "$session_name"
+        ssh -t "$remote" "tmux new-session -s '$session_name'"
+        return
+    fi
+
+    local selected
+    if command -v fzf &>/dev/null; then
+        selected=$(echo "$sessions" | fzf --height 40% --reverse --prompt="remote session> ")
+    else
+        # Fallback: numbered menu
+        echo "Remote sessions on $remote:"
+        local i=1
+        while IFS= read -r line; do
+            echo "  $i) $line"
+            ((i++))
+        done <<< "$sessions"
+        echo -n "Select (or Enter for new): "
+        local choice
+        read choice
+        if [ -n "$choice" ] && [ "$choice" -gt 0 ] 2>/dev/null; then
+            selected=$(echo "$sessions" | sed -n "${choice}p")
+        fi
+    fi
+
+    if [ -n "$selected" ]; then
+        printf '\033]0;🔗 %s\007' "$selected"
+        ssh -t "$remote" "tmux attach-session -t '$selected'"
+    else
+        local session_name
+        session_name=$(basename "$PWD" | tr '.' '_')
+        printf '\033]0;🔗 %s\007' "$session_name"
+        ssh -t "$remote" "tmux new-session -s '$session_name'"
+    fi
+}
+
+# Git worktree + tmux session creator
+# Usage: tw <branch-name>
+tw() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: tw <branch-name>"
+        return 1
+    fi
+
+    local branch="$1"
+    local worktree_dir="../$(basename "$PWD")-$branch"
+
+    if [ -d "$worktree_dir" ]; then
+        echo "Worktree already exists at $worktree_dir"
+    else
+        git worktree add "$worktree_dir" -b "$branch" 2>/dev/null \
+            || git worktree add "$worktree_dir" "$branch"
+    fi
+
+    local session_name
+    session_name=$(basename "$worktree_dir" | tr '.' '_')
+    printf '\033]0;💻 %s\007' "$session_name"
+
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        tmux attach-session -t "$session_name"
+    else
+        tmux new-session -s "$session_name" -c "$worktree_dir"
+    fi
+}
+
+# Git worktree + tmux session cleanup
+# Usage: twd [branch-name]  (defaults to current directory's worktree)
+twd() {
+    local branch
+    if [ $# -gt 0 ]; then
+        branch="$1"
+    else
+        branch=$(basename "$PWD")
+    fi
+
+    local worktree_dir
+    worktree_dir=$(git worktree list --porcelain | grep "^worktree" | grep "$branch" | sed 's/^worktree //')
+
+    if [ -z "$worktree_dir" ]; then
+        echo "No worktree found matching '$branch'"
+        return 1
+    fi
+
+    local session_name
+    session_name=$(basename "$worktree_dir" | tr '.' '_')
+
+    # Kill the tmux session if it exists
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        tmux kill-session -t "$session_name"
+        echo "Killed tmux session: $session_name"
+    fi
+
+    # Remove the worktree
+    git worktree remove "$worktree_dir" --force
+    echo "Removed worktree: $worktree_dir"
 }
 
 # ============================================================================
