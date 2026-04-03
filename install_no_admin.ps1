@@ -151,7 +151,6 @@ function Backup-ExistingConfigs {
             "$env:USERPROFILE\.config\atuin",
             "$env:USERPROFILE\.config\bat",
             "$env:USERPROFILE\.config\direnv",
-            "$env:USERPROFILE\.config\mise",
             "$env:USERPROFILE\.ezarc"
         )
 
@@ -357,9 +356,6 @@ function Install-Configs {
 
         # Eza
         "$DotfilesDir\tools\eza\.ezarc" = "$env:USERPROFILE\.ezarc"
-
-        # Mise/rtx
-        "$DotfilesDir\common\mise\.config\mise" = "$env:USERPROFILE\.config\mise"
 
         # PowerShell profile
         "$DotfilesDir\shell\powershell\Microsoft.PowerShell_profile.ps1" = $PROFILE

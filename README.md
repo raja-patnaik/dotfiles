@@ -8,7 +8,6 @@ A comprehensive, modular dotfiles repository that works seamlessly across **WSL/
 - **Modular structure**: Install only what you need
 - **Automated installation**: Single command setup with intelligent OS detection
 - **Modern tools**: Cutting-edge CLI tools for enhanced productivity
-- **Version management**: Consistent tool versions across all machines with `mise`
 - **Symlink management**: GNU Stow for Unix, PowerShell scripts for Windows
 - **Backup system**: Automatic backup of existing configs before installation
 
@@ -47,15 +46,11 @@ A comprehensive, modular dotfiles repository that works seamlessly across **WSL/
 
 ### Development Tools
 
-- **mise** (formerly rtx): Tool version management
 - **direnv**: Per-directory environment variables
-- **just**: Command runner for project tasks
 - **lazygit**: Terminal UI for Git
 - **atuin**: Sync shell history across machines
 - **gh**: GitHub CLI
 - **git-absorb**: Automatic fixup commits
-- **pre-commit**: Git hooks for code quality
-- **Nix** (optional): Declarative package management with flakes
 
 ## 📁 Directory Structure
 
@@ -64,15 +59,9 @@ dotfiles/
 ├── install.sh           # Unix/Linux/macOS installer
 ├── install.ps1          # Windows PowerShell installer
 ├── install.bat          # Windows batch wrapper
-├── .envrc.example       # Example direnv + Nix configuration
 ├── scripts/             # Helper scripts
 ├── packages/            # OS-specific package lists
-├── nix/                 # Nix flake configuration
-│   ├── flake.nix        # Nix flake with all tools
-│   └── home.nix         # Home Manager configuration
-├── docs/                # Documentation
-│   └── NIX_SETUP.md     # Nix setup guide
-├── common/              # Cross-platform configs (git, mise, etc.)
+├── common/              # Cross-platform configs (git, etc.)
 ├── terminal/            # Terminal emulator configs (wezterm)
 ├── shell/               # Shell configurations (zsh, bash, starship)
 ├── editor/              # Editor configs (neovim)
@@ -84,9 +73,6 @@ dotfiles/
 │   ├── lazygit/         # lazygit config
 │   ├── atuin/           # atuin history config
 │   └── direnv/          # direnv config
-├── development/         # Development tool configs
-│   ├── just/            # justfile for task running
-│   └── pre-commit/      # pre-commit hooks
 └── os-specific/         # OS-specific configurations
 ```
 
@@ -153,8 +139,6 @@ Available components:
 - `stow`/`links` - Create configuration symlinks
 - `shell` - Setup shell environment
 - `neovim` - Configure Neovim
-- `mise` - Install mise for version management
-- `nix` - Install Nix with flakes support (optional)
 - `wsl` - WSL-specific setup
 
 ### Dry Run
@@ -180,19 +164,11 @@ Preview changes without applying them:
    - `scoop.txt` - Windows Scoop packages
    - `winget.txt` - Windows WinGet packages
 
-2. Run the update command:
-
-```bash
-just update
-```
+2. Run the appropriate update command:
 
 ### Updating All Packages
 
 ```bash
-# Using just
-just update
-
-# Or manually
 brew upgrade            # macOS/Linux
 sudo apt upgrade        # Ubuntu/WSL
 scoop update *          # Windows
@@ -226,60 +202,19 @@ Set custom environment variables in:
 
 ## 🔧 Common Tasks
 
-### Using Just
-
-This repo includes a `justfile` for common tasks:
-
-```bash
-just               # Show available commands
-just install       # Install dotfiles
-just update        # Update all packages
-just backup        # Backup current configs
-just lint          # Run linters
-just health        # System health check
-```
-
-### Using Nix (Optional)
-
-For reproducible environments with Nix:
-
-```bash
-# Enter development shell with all tools
-cd ~/dotfiles/nix && nix develop
-
-# Use with direnv for automatic loading
-cp .envrc.example /path/to/project/.envrc
-direnv allow
-
-# Full declarative setup with Home Manager
-home-manager switch --flake ~/dotfiles/nix
-
-# See docs/NIX_SETUP.md for detailed guide
-```
-
 ### Managing Configurations
 
 **Add a new configuration:**
 1. Place the config file in the appropriate directory
 2. Update the installer script to include it
-3. Run `just install` to apply
+3. Run `./install.sh` to apply
 
 **Update configurations:**
 ```bash
 cd ~/dotfiles
 git pull
-just install
+./install.sh
 ```
-
-**Backup existing configs:**
-```bash
-just backup my-backup-name
-```
-
-## 📚 Documentation
-
-- **[NIX_SETUP.md](docs/NIX_SETUP.md)**: Complete guide for Nix integration
-- **[Tool Configurations](tools/)**: Individual tool documentation
 
 ## 🎨 Customization
 
@@ -325,19 +260,6 @@ colorscheme = "catppuccin"  -- or any other theme
 - Make sure WSL2 is installed and updated
 - Use the Linux installers within WSL
 
-### Health Check
-
-Run a system health check:
-
-```bash
-just health
-```
-
-This will check for:
-- Broken symbolic links
-- Missing required commands
-- Configuration issues
-
 ## 📝 License
 
 MIT License - See [LICENSE](LICENSE) file for details
@@ -356,7 +278,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - ✅ **Cross-platform**: Works on macOS, Linux, WSL, and Windows
 - ✅ **Modern tools**: All the latest CLI replacements (bat, eza, ripgrep, fd, etc.)
-- ✅ **Reproducible**: Nix flakes for zero-drift environments
 - ✅ **Modular**: Install only what you need
 - ✅ **Well-documented**: Comprehensive guides and examples
 - ✅ **Pre-configured**: Sensible defaults, ready to use
@@ -367,7 +288,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - [LazyVim](https://www.lazyvim.org/) for the Neovim configuration
 - [GNU Stow](https://www.gnu.org/software/stow/) for symlink management
-- [Nix](https://nixos.org/) for reproducible package management
 - All the amazing open-source tool maintainers
 
 ## 📧 Support

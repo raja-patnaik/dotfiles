@@ -38,7 +38,6 @@ python
 nodejs
 go
 rust
-mise
 uv
 
 # Note: tree-sitter CLI installed via npm (see install.ps1)
@@ -47,7 +46,6 @@ uv
 tmux
 lazygit
 direnv
-just
 atuin
 
 # Fonts

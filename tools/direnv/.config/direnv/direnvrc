@@ -46,13 +46,7 @@ layout_poetry() {
 layout_node() {
   local node_version=${1}
 
-  if has mise; then
-    if [[ -n "$node_version" ]]; then
-      mise use node@${node_version}
-    else
-      mise use node
-    fi
-  elif has fnm; then
+  if has fnm; then
     fnm use ${node_version}
   elif has nvm; then
     nvm use ${node_version:-default}
@@ -88,13 +82,7 @@ layout_rust() {
 layout_ruby() {
   local ruby_version=${1}
 
-  if has mise; then
-    if [[ -n "$ruby_version" ]]; then
-      mise use ruby@${ruby_version}
-    else
-      mise use ruby
-    fi
-  elif has rbenv; then
+  if has rbenv; then
     rbenv local ${ruby_version:-$(rbenv global)}
   elif has rvm; then
     rvm use ${ruby_version:-default}
@@ -146,92 +134,6 @@ source_if_exists() {
   [[ -f "$1" ]] && source "$1"
 }
 
-# Use a specific tool version with mise/asdf
-use() {
-  local tool="$1"
-  local version="${2:-latest}"
-
-  if has mise; then
-    mise use "${tool}@${version}"
-  elif has asdf; then
-    asdf local "$tool" "$version"
-  else
-    log_error "No version manager found (mise or asdf)"
-  fi
-}
-
-# Watch additional files for changes
-watch_file() {
-  local file="$1"
-  if [[ -f "$file" ]]; then
-    watch_file "$file"
-  fi
-}
-
-# ============================================================================
-# AWS Helpers
-# ============================================================================
-
-# Set AWS profile
-use_aws() {
-  local profile="${1:-default}"
-  export AWS_PROFILE="$profile"
-  log_status "Using AWS profile: $profile"
-}
-
-# Assume AWS role
-assume_role() {
-  local role_arn="$1"
-  local session_name="${2:-direnv-session}"
-
-  local credentials=$(aws sts assume-role \
-    --role-arn "$role_arn" \
-    --role-session-name "$session_name" \
-    --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
-    --output text)
-
-  export AWS_ACCESS_KEY_ID=$(echo "$credentials" | cut -f1)
-  export AWS_SECRET_ACCESS_KEY=$(echo "$credentials" | cut -f2)
-  export AWS_SESSION_TOKEN=$(echo "$credentials" | cut -f3)
-}
-
-# ============================================================================
-# Docker Helpers
-# ============================================================================
-
-# Use Docker BuildKit
-use_buildkit() {
-  export DOCKER_BUILDKIT=1
-  export COMPOSE_DOCKER_CLI_BUILD=1
-}
-
-# ============================================================================
-# Kubernetes Helpers
-# ============================================================================
-
-# Set Kubernetes context
-use_k8s() {
-  local context="${1}"
-
-  if [[ -n "$context" ]]; then
-    export KUBECONFIG="${PWD}/.kube/config:${KUBECONFIG:-$HOME/.kube/config}"
-    kubectl config use-context "$context"
-  fi
-}
-
-# ============================================================================
-# Terraform Helpers
-# ============================================================================
-
-# Set Terraform workspace
-use_terraform() {
-  local workspace="${1:-default}"
-
-  if [[ -d .terraform ]]; then
-    terraform workspace select "$workspace" 2>/dev/null || terraform workspace new "$workspace"
-  fi
-}
-
 # ============================================================================
 # Common Patterns
 # ============================================================================
@@ -256,38 +158,3 @@ layout_go_project() {
   layout_go
   dotenv_if_exists
 }
-
-# ============================================================================
-# Strict Mode
-# ============================================================================
-
-# Enable strict mode for debugging
-strict_env() {
-  set -euo pipefail
-  export DIRENV_FAIL_FAST=1
-}
-
-# ============================================================================
-# Nix Integration
-# ============================================================================
-
-# Use Nix flake
-use_flake() {
-  watch_file flake.nix
-  watch_file flake.lock
-
-  if has nix; then
-    eval "$(nix print-dev-env)"
-  fi
-}
-
-# ============================================================================
-# mise (formerly rtx) Integration
-# ============================================================================
-
-# Load mise if available
-if has mise; then
-  layout_mise() {
-    eval "$(mise hook-env)"
-  }
-fi

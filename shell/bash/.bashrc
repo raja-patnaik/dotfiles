@@ -251,11 +251,6 @@ if command -v direnv &> /dev/null; then
     eval "$(direnv hook bash)"
 fi
 
-# mise (formerly rtx)
-if command -v mise &> /dev/null; then
-    eval "$(mise activate bash)"
-fi
-
 # ============================================================================
 # Local Configuration
 # ============================================================================

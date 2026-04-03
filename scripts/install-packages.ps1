@@ -197,7 +197,6 @@ function Install-Rust {
         "sd",
         "git-delta",
         "atuin",
-        "just",
         "cargo-update"
     )
 

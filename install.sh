@@ -363,43 +363,6 @@ EOF
   log_info "Zsh plugins will be auto-installed on first launch via .zshrc"
 }
 
-install_mise() {
-  if ! command -v mise &>/dev/null; then
-    log_info "Installing mise..."
-    curl https://mise.run | sh
-    eval "$(~/.local/bin/mise activate bash)"
-  fi
-}
-
-install_nix() {
-  if ! command -v nix &>/dev/null; then
-    log_info "Installing Nix..."
-    log_warning "Nix installation requires sudo and will modify system files"
-    if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-      # Install Nix with flakes enabled
-      sh <(curl -L https://nixos.org/nix/install) --daemon --yes
-
-      # Enable flakes and nix-command
-      mkdir -p ~/.config/nix
-      cat >~/.config/nix/nix.conf <<EOF
-experimental-features = nix-command flakes
-EOF
-      log_success "Nix installed! Restart your shell to use it."
-    else
-      log_warning "Nix installation not supported on this platform"
-    fi
-  else
-    log_info "Nix already installed"
-
-    # Ensure flakes are enabled
-    if ! grep -q "experimental-features.*flakes" ~/.config/nix/nix.conf 2>/dev/null; then
-      log_info "Enabling Nix flakes..."
-      mkdir -p ~/.config/nix
-      echo "experimental-features = nix-command flakes" >>~/.config/nix/nix.conf
-    fi
-  fi
-}
-
 install_nodejs() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     if ! command -v node &>/dev/null; then
@@ -521,7 +484,7 @@ Options:
     --help          Show this help message
 
 Components:
-    packages, stow, shell, neovim, mise, nix, docker, all
+    packages, stow, shell, neovim, docker, all
 
 Example:
     $0 --only packages,shell
@@ -560,8 +523,6 @@ main() {
     install_packages
     stow_configs
     setup_shell
-    install_mise
-    install_nix
     install_docker
     setup_neovim
   else
@@ -580,12 +541,6 @@ main() {
         ;;
       neovim)
         setup_neovim
-        ;;
-      mise)
-        install_mise
-        ;;
-      nix)
-        install_nix
         ;;
       docker)
         install_docker

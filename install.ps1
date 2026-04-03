@@ -310,9 +310,6 @@ function Install-Configs {
 
         # Eza
         "$DotfilesDir\tools\eza\.ezarc" = "$env:USERPROFILE\.ezarc"
-
-        # Mise/rtx
-        "$DotfilesDir\common\mise\.config\mise" = "$env:USERPROFILE\.config\mise"
     }
 
     foreach ($source in $configs.Keys) {

@@ -162,9 +162,6 @@ $configs = @{
     # Atuin
     "$DotfilesDir\tools\atuin\.config\atuin" = "$env:USERPROFILE\.config\atuin"
 
-    # Mise/rtx
-    "$DotfilesDir\common\mise\.config\mise" = "$env:USERPROFILE\.config\mise"
-
     # PowerShell profile
     "$DotfilesDir\shell\powershell\Microsoft.PowerShell_profile.ps1" = $PROFILE
 
