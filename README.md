@@ -237,7 +237,7 @@ colorscheme = "catppuccin"  -- or any other theme
 ### Key Bindings
 
 - **tmux prefix**: `Ctrl-a` (like GNU Screen)
-- **WezTerm leader**: `Ctrl-a`
+- **WezTerm leader**: `Alt-a`
 - **Neovim leader**: `Space`
 
 ## 🔍 Troubleshooting

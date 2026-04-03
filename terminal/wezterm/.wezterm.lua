@@ -63,7 +63,7 @@ config.scrollback_lines = 10000
 -- Key Bindings
 -- ============================================================================
 
-config.leader = { key = 'a', mods = 'CTRL', timeout_milliseconds = 1000 }
+config.leader = { key = 'a', mods = 'ALT', timeout_milliseconds = 1000 }
 
 config.keys = {
   -- Pane management (like tmux)
