@@ -49,12 +49,6 @@ detect_os() {
             fi
             ;;
 
-        msys*|mingw*|cygwin*)
-            os="windows"
-            distro="git-bash"
-            version=$(uname -r)
-            ;;
-
         freebsd*)
             os="freebsd"
             version=$(uname -r)
@@ -109,12 +103,6 @@ get_package_manager() {
         pm="macports"
     elif command -v pkg &>/dev/null; then
         pm="pkg"
-    elif command -v scoop &>/dev/null; then
-        pm="scoop"
-    elif command -v winget &>/dev/null; then
-        pm="winget"
-    elif command -v choco &>/dev/null; then
-        pm="choco"
     else
         pm="unknown"
     fi
@@ -153,7 +141,7 @@ main() {
             case "$OSTYPE" in
                 linux*) echo "linux" ;;
                 darwin*) echo "macos" ;;
-                msys*|mingw*|cygwin*) echo "windows" ;;
+                msys*|mingw*|cygwin*) echo "unsupported" ;;
                 *) echo "unknown" ;;
             esac
             ;;
