@@ -366,49 +366,6 @@ setup_shell() {
   log_info "Zsh plugins will be auto-installed on first launch via .zshrc"
 }
 
-install_mise() {
-  if ! command -v mise &>/dev/null; then
-    log_info "Installing mise..."
-    run_cmd bash -c "curl https://mise.run | sh"
-    eval "$(~/.local/bin/mise activate bash)"
-  fi
-}
-
-install_nix() {
-  if ! command -v nix &>/dev/null; then
-    log_info "Installing Nix..."
-    log_warning "Nix installation requires sudo and will modify system files"
-    read -p "Continue with Nix installation? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-      if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-        # Install Nix with flakes enabled
-        run_cmd bash -c "sh <(curl -L https://nixos.org/nix/install) --daemon --yes"
-
-        # Enable flakes and nix-command
-        run_cmd mkdir -p ~/.config/nix
-        run_cmd bash -c "cat >~/.config/nix/nix.conf <<NIXEOF
-experimental-features = nix-command flakes
-NIXEOF"
-        log_success "Nix installed! Restart your shell to use it."
-      else
-        log_warning "Nix installation not supported on this platform"
-      fi
-    else
-      log_info "Skipping Nix installation"
-    fi
-  else
-    log_info "Nix already installed"
-
-    # Ensure flakes are enabled
-    if ! grep -q "experimental-features.*flakes" ~/.config/nix/nix.conf 2>/dev/null; then
-      log_info "Enabling Nix flakes..."
-      run_cmd mkdir -p ~/.config/nix
-      run_cmd bash -c 'echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf'
-    fi
-  fi
-}
-
 install_nodejs() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     if ! command -v node &>/dev/null; then
@@ -526,7 +483,7 @@ Options:
     --help          Show this help message
 
 Components:
-    packages, stow, shell, neovim, mise, nix, docker, all
+    packages, stow, shell, neovim, docker, all
 
 Example:
     $0 --only packages,shell
@@ -565,8 +522,6 @@ main() {
     install_packages
     stow_configs
     setup_shell
-    install_mise
-    install_nix
     install_docker
     setup_neovim
   else
@@ -585,12 +540,6 @@ main() {
         ;;
       neovim)
         setup_neovim
-        ;;
-      mise)
-        install_mise
-        ;;
-      nix)
-        install_nix
         ;;
       docker)
         install_docker

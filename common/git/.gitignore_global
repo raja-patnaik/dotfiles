@@ -176,10 +176,6 @@ credentials.yml
 .envrc
 .direnv/
 
-# mise/rtx
-.mise.toml
-.rtx.toml
-
 # Local history
 .history/
 .localhistory/

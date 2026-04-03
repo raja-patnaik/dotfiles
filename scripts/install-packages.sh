@@ -145,7 +145,6 @@ install_rust() {
         sd \
         git-delta \
         atuin \
-        just \
         cargo-update
 }
 
