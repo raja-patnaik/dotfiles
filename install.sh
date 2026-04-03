@@ -279,6 +279,7 @@ stow_configs() {
   # Stow each component
   local components=(
     "common/git"
+    "shell/common"
     "shell/zsh"
     "shell/bash"
     "shell/starship"
