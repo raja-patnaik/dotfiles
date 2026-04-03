@@ -1,7 +1,7 @@
 # Ghostty Terminal Configuration
 
 # Theme
-theme = tokyonight
+theme = Catppuccin Mocha
 background-opacity = 0.95
 
 # Font
@@ -11,7 +11,7 @@ font-size = 13
 # Window
 window-padding-x = 10
 window-padding-y = 10
-window-decoration = auto
+window-decoration = true
 
 # Shell
 shell-integration = detect
@@ -21,13 +21,15 @@ cursor-style = block
 cursor-style-blink = true
 
 # Behavior
+copy-on-select = clipboard
+confirm-close-surface = false
 mouse-hide-while-typing = true
-copy-on-select = false
-scrollback-limit = 10000
-confirm-close-surface = true
-auto-update = check
+scrollback-limit = 50000
 
-# Keybindings (macOS)
+# macOS
+macos-option-as-alt = true
+
+# Keybindings
 keybind = cmd+t=new_tab
 keybind = cmd+w=close_surface
 keybind = cmd+shift+]=next_tab

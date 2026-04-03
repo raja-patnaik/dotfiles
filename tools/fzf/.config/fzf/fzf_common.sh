@@ -19,10 +19,10 @@ export FZF_DEFAULT_OPTS="
     --bind='ctrl-u:preview-page-up'
     --bind='ctrl-d:preview-page-down'
     --bind='ctrl-a:select-all'
-    --color=fg:#c0caf5,bg:#1a1b26,hl:#7aa2f7
-    --color=fg+:#c0caf5,bg+:#283457,hl+:#7dcfff
-    --color=info:#7aa2f7,prompt:#7dcfff,pointer:#7dcfff
-    --color=marker:#9ece6a,spinner:#9ece6a,header:#9ece6a
+    --color=fg:#cdd6f4,bg:#1e1e2e,hl:#89b4fa
+    --color=fg+:#cdd6f4,bg+:#313244,hl+:#89dceb
+    --color=info:#89b4fa,prompt:#89dceb,pointer:#89dceb
+    --color=marker:#a6e3a1,spinner:#a6e3a1,header:#a6e3a1
 "
 
 # CTRL-T: file search
