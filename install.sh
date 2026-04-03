@@ -290,7 +290,6 @@ stow_configs() {
     "tools/fzf"
     "tools/lazygit"
     "tools/atuin"
-    "tools/direnv"
   )
 
   # Ensure parent directories exist as regular directories

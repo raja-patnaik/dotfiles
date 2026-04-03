@@ -172,10 +172,6 @@ credentials.yml
 # Ansible
 *.retry
 
-# direnv
-.envrc
-.direnv/
-
 # Local history
 .history/
 .localhistory/

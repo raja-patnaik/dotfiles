@@ -48,7 +48,6 @@ Session.vim
 ## Nix
 result
 result-*
-.direnv/
 
 ## Python
 __pycache__/

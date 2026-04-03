@@ -35,7 +35,6 @@ liblzma-dev
 
 # Utilities
 jq
-direnv
 htop
 tree
 xclip

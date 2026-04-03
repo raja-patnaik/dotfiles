@@ -46,7 +46,6 @@ A comprehensive, modular dotfiles repository that works seamlessly across **macO
 
 ### Development Tools
 
-- **direnv**: Per-directory environment variables
 - **lazygit**: Terminal UI for Git
 - **atuin**: Sync shell history across machines
 - **gh**: GitHub CLI
@@ -69,8 +68,7 @@ dotfiles/
     ├── fzf/             # fzf fuzzy finder config
     ├── tmux/            # tmux config
     ├── lazygit/         # lazygit config
-    ├── atuin/           # atuin history config
-    └── direnv/          # direnv config
+    └── atuin/           # atuin history config
 ```
 
 ## Quick Start
