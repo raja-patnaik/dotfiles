@@ -24,7 +24,6 @@ cursor-style-blink = true
 copy-on-select = clipboard
 confirm-close-surface = false
 mouse-hide-while-typing = true
-scrollback-limit = 50000
 
 # macOS
 macos-option-as-alt = true
