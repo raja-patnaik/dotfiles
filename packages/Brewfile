@@ -64,7 +64,6 @@ brew "black"
 brew "mypy"
 
 # Casks (GUI applications)
-cask "wezterm"
 cask "ghostty"
 cask "docker"
 cask "font-jetbrains-mono-nerd-font"

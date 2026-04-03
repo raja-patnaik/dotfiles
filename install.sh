@@ -44,8 +44,6 @@ detect_os() {
     fi
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     OS_TYPE="macos"
-  elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
-    OS_TYPE="windows-bash"
   else
     log_error "Unsupported OS: $OSTYPE"
   fi
@@ -126,7 +124,7 @@ backup_existing_configs() {
   # List of config files/dirs to backup
   local configs=(
     ".zshrc" ".zshenv" ".bashrc" ".bash_profile"
-    ".gitconfig" ".tmux.conf" ".wezterm.lua"
+    ".gitconfig" ".tmux.conf"
     ".config/nvim" ".config/starship.toml"
     ".config/lazygit" ".config/atuin"
   )
@@ -261,7 +259,6 @@ stow_configs() {
     "shell/zsh"
     "shell/bash"
     "shell/starship"
-    "terminal/wezterm"
     "terminal/ghostty"
     "editor/nvim"
     "tools/tmux"
