@@ -56,7 +56,6 @@ A comprehensive, modular dotfiles repository that works seamlessly across **macO
 ```
 dotfiles/
 ├── install.sh           # Installer (macOS/Linux/WSL)
-├── scripts/             # Helper scripts
 ├── packages/            # OS-specific package lists
 ├── common/              # Cross-platform configs (git)
 ├── terminal/            # Terminal emulator configs (ghostty)
@@ -82,7 +81,7 @@ dotfiles/
 ### One-Line Installation
 
 ```bash
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh
+git clone https://github.com/raja-patnaik/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh
 ```
 
 ### Manual Installation
@@ -90,7 +89,7 @@ git clone https://github.com/yourusername/dotfiles.git ~/dotfiles && cd ~/dotfil
 1. **Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
+git clone https://github.com/raja-patnaik/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
