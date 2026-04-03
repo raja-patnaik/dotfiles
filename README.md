@@ -188,16 +188,16 @@ git pull
 
 ### Theme
 
-The default theme is **Tokyo Night**. To change it:
+The default theme is **Catppuccin Mocha**. To change it:
 
-1. **Terminal** - Edit Ghostty config in `~/.config/ghostty/config`
-
-2. **Neovim** - Edit `~/.config/nvim/lua/config/lazy.lua`:
+1. **Terminal** - Edit `theme` in `~/.config/ghostty/config`
+2. **FZF** - Update color values in `~/.config/fzf/fzf_common.sh`
+3. **Starship** - Update styles in `~/.config/starship.toml`
+4. **Neovim** - Edit `~/.config/nvim/lua/config/lazy.lua`:
 ```lua
-colorscheme = "catppuccin"  -- or any other theme
+colorscheme = "tokyonight"  -- or any other theme
 ```
-
-3. **Tmux** - Edit `~/.tmux.conf` status bar colors
+5. **Tmux** - Edit `~/.tmux.conf` status bar colors
 
 ### Key Bindings
 
