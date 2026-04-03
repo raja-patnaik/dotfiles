@@ -34,6 +34,26 @@ log_error() {
   exit 1
 }
 
+# Run a command, or just print it in dry-run mode
+run_cmd() {
+  if [[ "$DRY_RUN" == true ]]; then
+    log_info "[DRY RUN] Would run: $*"
+  else
+    "$@"
+  fi
+}
+
+cleanup() {
+  local exit_code=$?
+  if [[ $exit_code -ne 0 ]]; then
+    log_warning "Installation interrupted (exit code: $exit_code). Some changes may have been partially applied."
+    if [[ -d "$BACKUP_DIR" ]]; then
+      log_info "Your original configs were backed up to: $BACKUP_DIR"
+    fi
+  fi
+}
+trap cleanup EXIT
+
 detect_os() {
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     if grep -qi microsoft /proc/version 2>/dev/null; then
@@ -66,8 +86,8 @@ setup_locale() {
     # Check if locale is already generated
     if ! locale -a | grep -q "en_US.utf8"; then
       log_info "Generating en_US.UTF-8 locale..."
-      sudo locale-gen en_US.UTF-8
-      sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+      run_cmd sudo locale-gen en_US.UTF-8
+      run_cmd sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
       log_success "Locale configured"
     else
       log_info "Locale en_US.UTF-8 already configured"
@@ -79,17 +99,20 @@ install_homebrew() {
   if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     if ! command -v brew &>/dev/null; then
       log_info "Installing Homebrew..."
-      NONINTERACTIVE=1 CI=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      run_cmd /bin/bash -c "NONINTERACTIVE=1 CI=1 /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
 
       # Add Homebrew to PATH
       if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-        # Check both system and user Homebrew locations
+        local brew_line=""
         if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.profile"
+          brew_line='eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
         elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
           eval "$($HOME/.linuxbrew/bin/brew shellenv)"
-          echo 'eval "$($HOME/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.profile"
+          brew_line='eval "$($HOME/.linuxbrew/bin/brew shellenv)"'
+        fi
+        if [[ -n "$brew_line" ]] && ! grep -qF "$brew_line" "$HOME/.profile" 2>/dev/null; then
+          run_cmd bash -c "echo '$brew_line' >> \"\$HOME/.profile\""
         fi
       fi
     else
@@ -102,14 +125,14 @@ install_stow() {
   if ! command -v stow &>/dev/null; then
     log_info "Installing GNU Stow..."
     if [[ "$OS_TYPE" == "macos" ]]; then
-      brew install stow
+      run_cmd brew install stow
     elif [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
       if command -v apt-get &>/dev/null; then
-        sudo apt-get update && sudo apt-get install -y stow
+        run_cmd sudo apt-get update && run_cmd sudo apt-get install -y stow
       elif command -v yum &>/dev/null; then
-        sudo yum install -y stow
+        run_cmd sudo yum install -y stow
       elif command -v brew &>/dev/null; then
-        brew install stow
+        run_cmd brew install stow
       else
         log_error "Cannot install stow: no supported package manager found"
       fi
@@ -121,7 +144,7 @@ install_stow() {
 
 backup_existing_configs() {
   log_info "Backing up existing configurations to $BACKUP_DIR..."
-  mkdir -p "$BACKUP_DIR"
+  run_cmd mkdir -p "$BACKUP_DIR"
 
   # List of config files/dirs to backup
   local configs=(
@@ -134,9 +157,9 @@ backup_existing_configs() {
   for config in "${configs[@]}"; do
     if [[ -e "$HOME/$config" ]]; then
       local backup_path="$BACKUP_DIR/$config"
-      mkdir -p "$(dirname "$backup_path")"
-      cp -r "$HOME/$config" "$backup_path" 2>/dev/null || true
-      rm -rf "$HOME/$config"
+      run_cmd mkdir -p "$(dirname "$backup_path")"
+      run_cmd cp -r "$HOME/$config" "$backup_path"
+      run_cmd rm -rf "$HOME/$config"
       log_info "Backed up $config"
     fi
   done
@@ -147,19 +170,19 @@ install_packages() {
 
   case "$OS_TYPE" in
   macos)
-    if [[ -f "$DOTFILES_DIR/packages/brew.txt" ]]; then
+    if [[ -f "$DOTFILES_DIR/packages/Brewfile" ]]; then
       log_info "Installing macOS packages..."
-      brew bundle --file="$DOTFILES_DIR/packages/Brewfile"
+      run_cmd brew bundle --file="$DOTFILES_DIR/packages/Brewfile"
     fi
     ;;
   linux | wsl)
     if command -v apt-get &>/dev/null && [[ -f "$DOTFILES_DIR/packages/apt.txt" ]]; then
       log_info "Installing apt packages..."
-      cat "$DOTFILES_DIR/packages/apt.txt" | grep -v '^\s*#' | grep -v '^\s*$' | xargs sudo apt-get install -y
+      run_cmd bash -c "grep -v '^\s*#' '$DOTFILES_DIR/packages/apt.txt' | grep -v '^\s*$' | xargs sudo apt-get install -y"
     fi
     if command -v brew &>/dev/null && [[ -f "$DOTFILES_DIR/packages/brew-linux.txt" ]]; then
       log_info "Installing Homebrew packages..."
-      cat "$DOTFILES_DIR/packages/brew-linux.txt" | grep -v '^\s*#' | grep -v '^\s*$' | xargs brew install
+      run_cmd bash -c "grep -v '^\s*#' '$DOTFILES_DIR/packages/brew-linux.txt' | grep -v '^\s*$' | xargs brew install"
     fi
     ;;
   esac
@@ -167,8 +190,8 @@ install_packages() {
   # Install Rust and cargo tools
   # Always clean up old apt-based cargo installations first
   log_info "Cleaning up old apt cargo installations..."
-  sudo apt-get remove -y cargo rustc 2>/dev/null || true
-  rm -rf ~/.local/share/cargo 2>/dev/null || true
+  run_cmd sudo apt-get remove -y cargo rustc 2>/dev/null || true
+  run_cmd rm -rf ~/.local/share/cargo 2>/dev/null || true
 
   # Unset old cargo environment variables and set correct paths
   unset CARGO_HOME RUSTUP_HOME
@@ -177,15 +200,15 @@ install_packages() {
 
   if ! command -v rustup &>/dev/null; then
     log_info "Installing Rust via rustup..."
-    rm -rf ~/.cargo ~/.rustup 2>/dev/null || true
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    run_cmd rm -rf ~/.cargo ~/.rustup 2>/dev/null || true
+    run_cmd bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
   else
     log_info "Updating Rust to latest stable..."
     if ! rustup update stable 2>/dev/null; then
       log_warning "Rustup update failed, reinstalling..."
-      rm -rf ~/.cargo ~/.rustup ~/.local/share/cargo 2>/dev/null || true
-      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      run_cmd rm -rf ~/.cargo ~/.rustup ~/.local/share/cargo 2>/dev/null || true
+      run_cmd bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
     fi
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
   fi
@@ -195,7 +218,7 @@ install_packages() {
   for tool in "${cargo_tools[@]}"; do
     if ! command -v "$tool" &>/dev/null; then
       log_info "Installing $tool..."
-      cargo install "$tool"
+      run_cmd cargo install "$tool"
     fi
   done
 }
@@ -253,7 +276,7 @@ remove_stow_conflicts() {
 
 stow_configs() {
   log_info "Stowing configurations..."
-  cd "$DOTFILES_DIR"
+  cd "$DOTFILES_DIR" || log_error "Failed to cd to $DOTFILES_DIR"
 
   # Stow each component
   local components=(
@@ -292,7 +315,7 @@ stow_configs() {
 
       # Pre-emptively remove known target paths that will be symlinked
       # This handles cases where the user runs --only stow without backup
-      cd "$DOTFILES_DIR/$component"
+      cd "$DOTFILES_DIR/$component" || log_error "Failed to cd to $DOTFILES_DIR/$component"
 
       # Parent directories that should never be removed
       local skip_dirs=(".config" ".local" ".cache")
@@ -321,13 +344,13 @@ stow_configs() {
           rm -rf "$target_path"
         fi
       done
-      cd "$DOTFILES_DIR"
+      cd "$DOTFILES_DIR" || log_error "Failed to cd back to $DOTFILES_DIR"
 
       # Remove any remaining conflicts
       remove_stow_conflicts "$component"
 
       # Now stow the component
-      stow --no-folding -v -t "$HOME" -d "$(dirname "$component")" "$(basename "$component")"
+      run_cmd stow --no-folding -v -t "$HOME" -d "$(dirname "$component")" "$(basename "$component")"
     fi
   done
 }
@@ -339,7 +362,7 @@ setup_shell() {
   if [[ "$SHELL" != *"zsh"* ]]; then
     if command -v zsh &>/dev/null; then
       log_info "Changing default shell to zsh..."
-      chsh -s "$(which zsh)"
+      run_cmd chsh -s "$(which zsh)"
     fi
   fi
 
@@ -349,7 +372,7 @@ setup_shell() {
 install_mise() {
   if ! command -v mise &>/dev/null; then
     log_info "Installing mise..."
-    curl https://mise.run | sh
+    run_cmd bash -c "curl https://mise.run | sh"
     eval "$(~/.local/bin/mise activate bash)"
   fi
 }
@@ -363,13 +386,13 @@ install_nix() {
     if [[ $REPLY =~ ^[Yy]$ ]]; then
       if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
         # Install Nix with flakes enabled
-        sh <(curl -L https://nixos.org/nix/install) --daemon --yes
+        run_cmd bash -c "sh <(curl -L https://nixos.org/nix/install) --daemon --yes"
 
         # Enable flakes and nix-command
-        mkdir -p ~/.config/nix
-        cat >~/.config/nix/nix.conf <<EOF
+        run_cmd mkdir -p ~/.config/nix
+        run_cmd bash -c "cat >~/.config/nix/nix.conf <<NIXEOF
 experimental-features = nix-command flakes
-EOF
+NIXEOF"
         log_success "Nix installed! Restart your shell to use it."
       else
         log_warning "Nix installation not supported on this platform"
@@ -383,8 +406,8 @@ EOF
     # Ensure flakes are enabled
     if ! grep -q "experimental-features.*flakes" ~/.config/nix/nix.conf 2>/dev/null; then
       log_info "Enabling Nix flakes..."
-      mkdir -p ~/.config/nix
-      echo "experimental-features = nix-command flakes" >>~/.config/nix/nix.conf
+      run_cmd mkdir -p ~/.config/nix
+      run_cmd bash -c 'echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf'
     fi
   fi
 }
@@ -395,8 +418,8 @@ install_nodejs() {
       log_info "Installing Node.js v22.x..."
 
       # Install from NodeSource repository
-      curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-      sudo apt-get install -y nodejs
+      run_cmd bash -c "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -"
+      run_cmd sudo apt-get install -y nodejs
 
       log_success "Node.js $(node --version) installed"
     else
@@ -406,7 +429,7 @@ install_nodejs() {
     # Configure npm to use Linux-only global prefix (critical for WSL)
     if [[ "$IS_WSL" == true ]] || [[ "$OS_TYPE" == "linux" ]]; then
       log_info "Configuring npm global prefix for Linux..."
-      npm config set prefix "$HOME/.npm-global"
+      run_cmd npm config set prefix "$HOME/.npm-global"
       export PATH="$HOME/.npm-global/bin:$PATH"
     fi
 
@@ -417,9 +440,9 @@ install_nodejs() {
       if command -v npm &>/dev/null; then
         # Force reinstall in WSL to ensure Linux version
         if [[ "$IS_WSL" == true ]]; then
-          npm uninstall -g tree-sitter-cli 2>/dev/null || true
+          run_cmd npm uninstall -g tree-sitter-cli 2>/dev/null || true
         fi
-        npm install -g tree-sitter-cli
+        run_cmd npm install -g tree-sitter-cli
         log_success "tree-sitter CLI installed to $HOME/.npm-global/bin"
       else
         log_warning "npm not found, skipping tree-sitter CLI installation"
@@ -445,7 +468,7 @@ install_docker() {
     # Configure Docker to run without sudo
     if ! groups | grep -q docker; then
       log_info "Adding user to docker group..."
-      sudo usermod -aG docker "$USER"
+      run_cmd sudo usermod -aG docker "$USER"
       log_warning "You need to log out and back in for docker group changes to take effect"
     fi
 
@@ -454,8 +477,8 @@ install_docker() {
       local completion_dir="/usr/share/zsh/vendor-completions"
       if [[ ! -f "$completion_dir/_docker" ]]; then
         log_info "Installing zsh Docker completions..."
-        sudo mkdir -p "$completion_dir"
-        sudo curl -fsSL https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o "$completion_dir/_docker"
+        run_cmd sudo mkdir -p "$completion_dir"
+        run_cmd sudo curl -fsSL https://raw.githubusercontent.com/docker/cli/master/contrib/completion/zsh/_docker -o "$completion_dir/_docker"
       fi
     fi
   elif [[ "$OS_TYPE" == "macos" ]]; then
@@ -470,12 +493,12 @@ setup_neovim() {
   if ! command -v nvim &>/dev/null; then
     log_info "Installing Neovim..."
     if [[ "$OS_TYPE" == "macos" ]]; then
-      brew install neovim
+      run_cmd brew install neovim
     else
       # Install from AppImage for latest version
-      curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-      chmod u+x nvim.appimage
-      sudo mv nvim.appimage /usr/local/bin/nvim
+      run_cmd curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+      run_cmd chmod u+x nvim.appimage
+      run_cmd sudo mv nvim.appimage /usr/local/bin/nvim
     fi
   else
     log_info "Neovim already installed"

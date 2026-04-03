@@ -1,0 +1,20 @@
+# Pacman packages for Arch Linux
+# Add packages here, one per line
+# Lines starting with # are comments
+
+git
+git-lfs
+curl
+wget
+zsh
+tmux
+stow
+base-devel
+openssl
+readline
+zlib
+python
+python-pip
+go
+nodejs
+npm

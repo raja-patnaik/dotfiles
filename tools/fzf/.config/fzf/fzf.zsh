@@ -150,7 +150,7 @@ fcd() {
 
 # fzf search history and execute
 fh() {
-    eval $(history | fzf +s --tac | sed 's/ *[0-9]* *//')
+    eval "$(history | fzf +s --tac | sed 's/ *[0-9]* *//')"
 }
 
 # fzf search for text in files using ripgrep
