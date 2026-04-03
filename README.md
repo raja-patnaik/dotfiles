@@ -112,10 +112,10 @@ Install only specific components:
 
 Available components:
 - `packages` - Install system packages
-- `stow`/`links` - Create configuration symlinks
+- `stow` - Create configuration symlinks
 - `shell` - Setup shell environment
 - `neovim` - Configure Neovim
-- `wsl` - WSL-specific setup
+- `docker` - Install and configure Docker on Linux/WSL
 
 ### Dry Run
 

@@ -176,20 +176,23 @@ install_packages() {
   linux | wsl)
     if command -v apt-get &>/dev/null && [[ -f "$DOTFILES_DIR/packages/apt.txt" ]]; then
       log_info "Installing apt packages..."
-      run_cmd bash -c "grep -v '^\s*#' '$DOTFILES_DIR/packages/apt.txt' | grep -v '^\s*$' | xargs sudo apt-get install -y"
+      run_cmd sudo apt-get update
+      run_cmd bash -c "grep -v '^\s*#' '$DOTFILES_DIR/packages/apt.txt' | grep -v '^\s*$' | xargs -r sudo apt-get install -y"
     fi
     if command -v brew &>/dev/null && [[ -f "$DOTFILES_DIR/packages/brew-linux.txt" ]]; then
       log_info "Installing Homebrew packages..."
-      run_cmd bash -c "grep -v '^\s*#' '$DOTFILES_DIR/packages/brew-linux.txt' | grep -v '^\s*$' | xargs brew install"
+      run_cmd bash -c "grep -v '^\s*#' '$DOTFILES_DIR/packages/brew-linux.txt' | grep -v '^\s*$' | xargs -r brew install"
     fi
     ;;
   esac
 
   # Install Rust and cargo tools
-  # Always clean up old apt-based cargo installations first
-  log_info "Cleaning up old apt cargo installations..."
-  run_cmd sudo apt-get remove -y cargo rustc 2>/dev/null || true
-  run_cmd rm -rf ~/.local/share/cargo 2>/dev/null || true
+  # Always clean up old apt-based cargo installations first (Linux/WSL only)
+  if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+    log_info "Cleaning up old apt cargo installations..."
+    run_cmd sudo apt-get remove -y cargo rustc 2>/dev/null || true
+    run_cmd rm -rf ~/.local/share/cargo 2>/dev/null || true
+  fi
 
   # Unset old cargo environment variables and set correct paths
   unset CARGO_HOME RUSTUP_HOME
@@ -211,12 +214,24 @@ install_packages() {
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
   fi
 
-  # Install cargo tools
-  local cargo_tools=("zoxide" "eza" "bat" "ripgrep" "fd-find" "sd" "git-delta" "atuin")
-  for tool in "${cargo_tools[@]}"; do
-    if ! command -v "$tool" &>/dev/null; then
-      log_info "Installing $tool..."
-      run_cmd cargo install "$tool"
+  # Install cargo tools (map cargo crate names to executable names)
+  local cargo_tools=(
+    "zoxide:zoxide"
+    "eza:eza"
+    "bat:bat"
+    "ripgrep:rg"
+    "fd-find:fd"
+    "sd:sd"
+    "git-delta:delta"
+    "atuin:atuin"
+  )
+
+  for tool_entry in "${cargo_tools[@]}"; do
+    local crate="${tool_entry%%:*}"
+    local binary="${tool_entry##*:}"
+    if ! command -v "$binary" &>/dev/null; then
+      log_info "Installing $crate..."
+      run_cmd cargo install "$crate"
     fi
   done
 }
@@ -557,4 +572,3 @@ main() {
 
 # Run main function
 main
-
