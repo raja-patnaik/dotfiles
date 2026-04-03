@@ -5,7 +5,7 @@
 # Theme and Colors
 # ============================================================================
 
-# Use Tokyo Night theme (matches WezTerm config)
+# Use Tokyo Night theme
 theme = tokyonight
 
 # Alternative themes you can try:

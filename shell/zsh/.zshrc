@@ -1,11 +1,6 @@
 # ~/.zshrc - Zsh configuration
 # Optimized for performance with lazy loading
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 # ============================================================================
 # Environment Variables
 # ============================================================================
@@ -173,11 +168,6 @@ fi
 # direnv
 if command -v direnv >/dev/null 2>&1; then
     eval "$(direnv hook zsh)"
-fi
-
-# mise (formerly rtx)
-if command -v mise >/dev/null 2>&1; then
-    eval "$(mise activate zsh)"
 fi
 
 # ============================================================================

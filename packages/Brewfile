@@ -31,7 +31,6 @@ brew "sd"
 brew "zoxide"
 brew "atuin"
 brew "direnv"
-brew "just"
 brew "xh"
 brew "bat"
 brew "eza"
@@ -53,21 +52,18 @@ brew "node"
 brew "python"
 brew "go"
 brew "rust"
-brew "mise"
 brew "uv"
 
 # Shell enhancements
 brew "shellcheck"
 brew "shfmt"
 
-# Pre-commit and linting
-brew "pre-commit"
+# Linting
 brew "ruff"
 brew "black"
 brew "mypy"
 
 # Casks (GUI applications)
-cask "wezterm"
 cask "ghostty"
 cask "docker"
 cask "font-jetbrains-mono-nerd-font"

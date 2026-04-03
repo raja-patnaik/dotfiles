@@ -124,57 +124,6 @@ install_pacman() {
     done < "$packages_file"
 }
 
-# Install with Scoop (Windows)
-install_scoop() {
-    local packages_file="$1"
-    if [[ ! -f "$packages_file" ]]; then
-        log_warning "Package file not found: $packages_file"
-        return
-    fi
-
-    # Check if Scoop is installed
-    if ! command -v scoop &>/dev/null; then
-        log_info "Installing Scoop..."
-        powershell -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
-        powershell -Command "irm get.scoop.sh | iex"
-    fi
-
-    log_info "Installing packages with Scoop..."
-
-    # Add buckets
-    scoop bucket add extras
-    scoop bucket add nerd-fonts
-
-    while IFS= read -r package || [[ -n "$package" ]]; do
-        # Skip comments and empty lines
-        [[ "$package" =~ ^#.*$ ]] && continue
-        [[ -z "$package" ]] && continue
-
-        log_info "Installing: $package"
-        scoop install "$package" || log_warning "Failed to install: $package"
-    done < "$packages_file"
-}
-
-# Install with WinGet (Windows)
-install_winget() {
-    local packages_file="$1"
-    if [[ ! -f "$packages_file" ]]; then
-        log_warning "Package file not found: $packages_file"
-        return
-    fi
-
-    log_info "Installing packages with WinGet..."
-
-    while IFS= read -r package || [[ -n "$package" ]]; do
-        # Skip comments and empty lines
-        [[ "$package" =~ ^#.*$ ]] && continue
-        [[ -z "$package" ]] && continue
-
-        log_info "Installing: $package"
-        winget install --id "$package" --accept-package-agreements --accept-source-agreements || log_warning "Failed to install: $package"
-    done < "$packages_file"
-}
-
 # Install Rust toolchain
 install_rust() {
     if ! command -v rustc &>/dev/null; then
@@ -196,7 +145,6 @@ install_rust() {
         sd \
         git-delta \
         atuin \
-        just \
         cargo-update
 }
 
@@ -266,12 +214,6 @@ main() {
             ;;
         pacman)
             install_pacman "$packages_dir/pacman.txt"
-            ;;
-        scoop)
-            install_scoop "$packages_dir/scoop.txt"
-            ;;
-        winget)
-            install_winget "$packages_dir/winget.txt"
             ;;
         *)
             log_error "Unsupported package manager: $pm"
