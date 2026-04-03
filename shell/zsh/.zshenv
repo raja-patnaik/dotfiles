@@ -92,9 +92,5 @@ export PYTHONUSERBASE="${XDG_DATA_HOME}/python"
 export PYTHON_HISTORY="${XDG_STATE_HOME}/python/history"
 export PIPENV_VENV_IN_PROJECT=1
 
-# Rust
-export CARGO_HOME="${XDG_DATA_HOME}/cargo"
-export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
-
 # SSH
 export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"

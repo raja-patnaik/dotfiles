@@ -46,14 +46,10 @@ A comprehensive, modular dotfiles repository that works seamlessly across **macO
 
 ### Development Tools
 
-- **mise**: Tool version management
-- **direnv**: Per-directory environment variables
-- **just**: Command runner for project tasks
 - **lazygit**: Terminal UI for Git
 - **atuin**: Sync shell history across machines
 - **gh**: GitHub CLI
 - **git-absorb**: Automatic fixup commits
-- **pre-commit**: Git hooks for code quality
 
 ## Directory Structure
 
@@ -62,22 +58,17 @@ dotfiles/
 ├── install.sh           # Installer (macOS/Linux/WSL)
 ├── scripts/             # Helper scripts
 ├── packages/            # OS-specific package lists
-├── common/              # Cross-platform configs (git, mise, etc.)
+├── common/              # Cross-platform configs (git)
 ├── terminal/            # Terminal emulator configs (ghostty)
 ├── shell/               # Shell configurations (zsh, bash, starship)
 ├── editor/              # Editor configs (neovim)
-├── tools/               # CLI tool configurations
-│   ├── bat/             # bat (cat replacement) config
-│   ├── eza/             # eza (ls replacement) config
-│   ├── fzf/             # fzf fuzzy finder config
-│   ├── tmux/            # tmux config
-│   ├── lazygit/         # lazygit config
-│   ├── atuin/           # atuin history config
-│   └── direnv/          # direnv config
-├── development/         # Development tool configs
-│   ├── just/            # justfile for task running
-│   └── pre-commit/      # pre-commit hooks
-└── os-specific/         # OS-specific configurations
+└── tools/               # CLI tool configurations
+    ├── bat/             # bat (cat replacement) config
+    ├── eza/             # eza (ls replacement) config
+    ├── fzf/             # fzf fuzzy finder config
+    ├── tmux/            # tmux config
+    ├── lazygit/         # lazygit config
+    └── atuin/           # atuin history config
 ```
 
 ## Quick Start
@@ -197,16 +188,16 @@ git pull
 
 ### Theme
 
-The default theme is **Tokyo Night**. To change it:
+The default theme is **Catppuccin Mocha**. To change it:
 
-1. **Terminal** - Edit Ghostty config in `~/.config/ghostty/config`
-
-2. **Neovim** - Edit `~/.config/nvim/lua/config/lazy.lua`:
+1. **Terminal** - Edit `theme` in `~/.config/ghostty/config`
+2. **FZF** - Update color values in `~/.config/fzf/fzf_common.sh`
+3. **Starship** - Update styles in `~/.config/starship.toml`
+4. **Neovim** - Edit `~/.config/nvim/lua/config/lazy.lua`:
 ```lua
-colorscheme = "catppuccin"  -- or any other theme
+colorscheme = "tokyonight"  -- or any other theme
 ```
-
-3. **Tmux** - Edit `~/.tmux.conf` status bar colors
+5. **Tmux** - Edit `~/.tmux.conf` status bar colors
 
 ### Key Bindings
 

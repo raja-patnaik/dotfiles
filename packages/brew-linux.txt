@@ -17,7 +17,6 @@ atuin
 xh
 tldr
 lazygit
-just
 
 # System monitoring and utilities
 procs
@@ -31,7 +30,6 @@ tokei
 neovim
 tree-sitter
 gh
-mise
 
 # Development tools
 ruff
