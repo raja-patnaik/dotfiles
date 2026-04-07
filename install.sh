@@ -15,6 +15,7 @@ DRY_RUN=false
 COMPONENTS=()
 OS_TYPE=""
 IS_WSL=false
+SKIP_DOCKER=false
 
 # Functions
 log_info() {
@@ -488,12 +489,17 @@ while [[ $# -gt 0 ]]; do
     IFS=',' read -ra COMPONENTS <<<"$2"
     shift 2
     ;;
+  --no-docker)
+    SKIP_DOCKER=true
+    shift
+    ;;
   --help)
     cat <<EOF
 Usage: $0 [OPTIONS]
 
 Options:
     --dry-run       Preview changes without applying them
+    --no-docker     Skip Docker installation
     --only <list>   Install only specified components (comma-separated)
     --help          Show this help message
 
@@ -537,7 +543,7 @@ main() {
     install_packages
     stow_configs
     setup_shell
-    install_docker
+    [[ "$SKIP_DOCKER" == false ]] && install_docker
     setup_neovim
   else
     for component in "${COMPONENTS[@]}"; do
