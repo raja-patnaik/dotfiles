@@ -427,12 +427,30 @@ install_nodejs() {
 
 install_docker() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+    local need_docker=false
+    local need_compose=false
+
     if ! command -v docker &>/dev/null; then
-      log_info "Installing Docker..."
-      # Docker is in apt.txt and will be installed via install_packages
-      log_info "Docker will be installed via apt packages"
+      need_docker=true
+    fi
+
+    if ! command -v docker-compose &>/dev/null && ! docker compose version &>/dev/null; then
+      need_compose=true
+    fi
+
+    if [[ "$need_docker" == true ]] || [[ "$need_compose" == true ]]; then
+      if command -v apt-get &>/dev/null; then
+        local pkgs=()
+        [[ "$need_docker" == true ]] && pkgs+=("docker.io")
+        [[ "$need_compose" == true ]] && pkgs+=("docker-compose")
+        log_info "Installing ${pkgs[*]}..."
+        run_cmd sudo apt-get update
+        run_cmd sudo apt-get install -y "${pkgs[@]}"
+      else
+        log_warning "apt-get not found, skipping Docker installation"
+      fi
     else
-      log_info "Docker already installed"
+      log_info "Docker and Compose already installed"
     fi
 
     # Configure Docker to run without sudo
@@ -452,7 +470,9 @@ install_docker() {
       fi
     fi
   elif [[ "$OS_TYPE" == "macos" ]]; then
-    log_info "Docker Desktop will be installed via Homebrew cask"
+    install_homebrew
+    log_info "Installing Docker Desktop via Homebrew..."
+    run_cmd brew install --cask docker
   fi
 }
 
