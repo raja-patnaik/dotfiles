@@ -94,28 +94,59 @@ setup_locale() {
   fi
 }
 
+get_homebrew_bin() {
+  if command -v brew &>/dev/null; then
+    command -v brew
+  elif [[ -x "/opt/homebrew/bin/brew" ]]; then
+    echo "/opt/homebrew/bin/brew"
+  elif [[ -x "/usr/local/bin/brew" ]]; then
+    echo "/usr/local/bin/brew"
+  elif [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
+    echo "/home/linuxbrew/.linuxbrew/bin/brew"
+  elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
+    echo "$HOME/.linuxbrew/bin/brew"
+  else
+    return 1
+  fi
+}
+
+load_homebrew_shellenv() {
+  local brew_bin=""
+  brew_bin="$(get_homebrew_bin)" || return 1
+  eval "$("$brew_bin" shellenv)"
+}
+
+docker_group_exists() {
+  if command -v getent &>/dev/null; then
+    getent group docker &>/dev/null
+  else
+    grep -q '^docker:' /etc/group 2>/dev/null
+  fi
+}
+
 install_homebrew() {
   if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-    if ! command -v brew &>/dev/null; then
+    if ! get_homebrew_bin &>/dev/null; then
       log_info "Installing Homebrew..."
       run_cmd /bin/bash -c "NONINTERACTIVE=1 CI=1 /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
-
-      # Add Homebrew to PATH
-      if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-        local brew_line=""
-        if [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]]; then
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew_line='eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
-        elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
-          eval "$($HOME/.linuxbrew/bin/brew shellenv)"
-          brew_line='eval "$($HOME/.linuxbrew/bin/brew shellenv)"'
-        fi
-        if [[ -n "$brew_line" ]] && ! grep -qF "$brew_line" "$HOME/.profile" 2>/dev/null; then
-          run_cmd bash -c "echo '$brew_line' >> \"\$HOME/.profile\""
-        fi
-      fi
     else
       log_info "Homebrew already installed"
+    fi
+
+    if ! load_homebrew_shellenv; then
+      log_error "Homebrew installation completed, but brew was not found on PATH"
+    fi
+
+    if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+      local brew_bin=""
+      local brew_line=""
+
+      brew_bin="$(get_homebrew_bin)" || log_error "Unable to locate Homebrew binary after installation"
+      brew_line="eval \"\$($brew_bin shellenv)\""
+
+      if ! grep -qF "$brew_line" "$HOME/.profile" 2>/dev/null; then
+        run_cmd bash -c "echo '$brew_line' >> \"\$HOME/.profile\""
+      fi
     fi
   fi
 }
@@ -432,6 +463,8 @@ install_docker() {
 
     if ! command -v docker &>/dev/null; then
       need_docker=true
+    elif command -v apt-get &>/dev/null && ! docker_group_exists; then
+      need_docker=true
     fi
 
     if ! command -v docker-compose &>/dev/null && ! docker compose version &>/dev/null; then
@@ -454,7 +487,9 @@ install_docker() {
     fi
 
     # Configure Docker to run without sudo
-    if ! groups | grep -q docker; then
+    if ! docker_group_exists; then
+      log_warning "Docker group not found, skipping docker group setup"
+    elif ! id -nG "$USER" | grep -qw docker; then
       log_info "Adding user to docker group..."
       run_cmd sudo usermod -aG docker "$USER"
       log_warning "You need to log out and back in for docker group changes to take effect"
