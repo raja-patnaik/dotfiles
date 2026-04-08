@@ -452,6 +452,7 @@ install_docker() {
       fi
     fi
   elif [[ "$OS_TYPE" == "macos" ]]; then
+    install_homebrew
     log_info "Installing Docker Desktop via Homebrew..."
     run_cmd brew install --cask docker
   fi
