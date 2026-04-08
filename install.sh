@@ -427,16 +427,30 @@ install_nodejs() {
 
 install_docker() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-    if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
+    local need_docker=false
+    local need_compose=false
+
+    if ! command -v docker &>/dev/null; then
+      need_docker=true
+    fi
+
+    if ! command -v docker-compose &>/dev/null && ! docker compose version &>/dev/null; then
+      need_compose=true
+    fi
+
+    if [[ "$need_docker" == true ]] || [[ "$need_compose" == true ]]; then
       if command -v apt-get &>/dev/null; then
-        log_info "Installing Docker..."
+        local pkgs=()
+        [[ "$need_docker" == true ]] && pkgs+=("docker.io")
+        [[ "$need_compose" == true ]] && pkgs+=("docker-compose")
+        log_info "Installing ${pkgs[*]}..."
         run_cmd sudo apt-get update
-        run_cmd sudo apt-get install -y docker.io docker-compose
+        run_cmd sudo apt-get install -y "${pkgs[@]}"
       else
         log_warning "apt-get not found, skipping Docker installation"
       fi
     else
-      log_info "Docker and docker-compose already installed"
+      log_info "Docker and Compose already installed"
     fi
 
     # Configure Docker to run without sudo
