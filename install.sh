@@ -94,6 +94,22 @@ setup_locale() {
   fi
 }
 
+dedup_apt_sources() {
+  if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+    if command -v apt-get &>/dev/null; then
+      local dupes
+      dupes=$(sudo apt-get update 2>&1 | grep -o '/etc/apt/sources.list.d/[^ ]*' | sort | uniq -d || true)
+      if [[ -n "$dupes" ]]; then
+        log_info "Removing duplicate apt source entries..."
+        echo "$dupes" | while read -r dup; do
+          log_info "  removing duplicate: $dup"
+          run_cmd sudo rm -f "$dup"
+        done
+      fi
+    fi
+  fi
+}
+
 get_homebrew_bin() {
   if command -v brew &>/dev/null; then
     command -v brew
@@ -490,6 +506,7 @@ install_tmux() {
     fi
 
     log_info "Building tmux $tmux_version from source..."
+    run_cmd sudo apt-get remove -y tmux 2>/dev/null || true
     run_cmd sudo apt-get install -y libevent-dev libncurses5-dev libncursesw5-dev bison byacc
 
     local build_dir=$(mktemp -d)
@@ -647,6 +664,7 @@ main() {
   # Execute based on components
   if [[ " ${COMPONENTS[@]} " =~ " all " ]]; then
     backup_existing_configs
+    dedup_apt_sources
     install_homebrew
     install_stow
     install_nodejs
