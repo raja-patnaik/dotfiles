@@ -427,7 +427,7 @@ install_nodejs() {
 
 install_docker() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
-    if ! command -v docker &>/dev/null; then
+    if ! command -v docker &>/dev/null || ! command -v docker-compose &>/dev/null; then
       if command -v apt-get &>/dev/null; then
         log_info "Installing Docker..."
         run_cmd sudo apt-get update
@@ -436,7 +436,7 @@ install_docker() {
         log_warning "apt-get not found, skipping Docker installation"
       fi
     else
-      log_info "Docker already installed"
+      log_info "Docker and docker-compose already installed"
     fi
 
     # Configure Docker to run without sudo
