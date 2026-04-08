@@ -428,9 +428,13 @@ install_nodejs() {
 install_docker() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     if ! command -v docker &>/dev/null; then
-      log_info "Installing Docker..."
-      run_cmd sudo apt-get update
-      run_cmd sudo apt-get install -y docker.io docker-compose
+      if command -v apt-get &>/dev/null; then
+        log_info "Installing Docker..."
+        run_cmd sudo apt-get update
+        run_cmd sudo apt-get install -y docker.io docker-compose
+      else
+        log_warning "apt-get not found, skipping Docker installation"
+      fi
     else
       log_info "Docker already installed"
     fi
