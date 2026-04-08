@@ -457,36 +457,8 @@ install_nodejs() {
       export PATH="$HOME/.npm-global/bin:$PATH"
     fi
 
-    # Install tree-sitter CLI via Linux npm (not Windows npm in WSL)
-    # Falls back to cargo if the npm binary is incompatible (e.g. glibc too old on Azure ML)
-    if ! command -v tree-sitter &>/dev/null || [[ "$IS_WSL" == true ]]; then
-      log_info "Installing tree-sitter CLI to Linux npm prefix..."
-
-      if command -v npm &>/dev/null; then
-        # Force reinstall in WSL to ensure Linux version
-        if [[ "$IS_WSL" == true ]]; then
-          run_cmd npm uninstall -g tree-sitter-cli 2>/dev/null || true
-        fi
-        run_cmd npm install -g tree-sitter-cli
-        # Verify the binary actually runs (may fail on older glibc)
-        if tree-sitter --version &>/dev/null; then
-          log_success "tree-sitter CLI installed to $HOME/.npm-global/bin"
-        else
-          log_warning "npm tree-sitter binary incompatible (likely glibc mismatch), falling back to cargo..."
-          run_cmd npm uninstall -g tree-sitter-cli 2>/dev/null || true
-          if command -v cargo &>/dev/null; then
-            run_cmd cargo install tree-sitter-cli
-            log_success "tree-sitter CLI installed via cargo"
-          else
-            log_warning "cargo not found, skipping tree-sitter CLI installation"
-          fi
-        fi
-      else
-        log_warning "npm not found, skipping tree-sitter CLI installation"
-      fi
-    else
-      log_info "tree-sitter CLI already installed"
-    fi
+    # tree-sitter CLI no longer installed here — nvim-treesitter compiles
+    # parsers directly with the system C compiler (gcc/clang via build-essential)
   elif [[ "$OS_TYPE" == "macos" ]]; then
     log_info "Node.js will be installed via Homebrew"
   fi
