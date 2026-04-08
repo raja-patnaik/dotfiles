@@ -458,6 +458,7 @@ install_nodejs() {
     fi
 
     # Install tree-sitter CLI via Linux npm (not Windows npm in WSL)
+    # Falls back to cargo if the npm binary is incompatible (e.g. glibc too old on Azure ML)
     if ! command -v tree-sitter &>/dev/null || [[ "$IS_WSL" == true ]]; then
       log_info "Installing tree-sitter CLI to Linux npm prefix..."
 
@@ -467,7 +468,19 @@ install_nodejs() {
           run_cmd npm uninstall -g tree-sitter-cli 2>/dev/null || true
         fi
         run_cmd npm install -g tree-sitter-cli
-        log_success "tree-sitter CLI installed to $HOME/.npm-global/bin"
+        # Verify the binary actually runs (may fail on older glibc)
+        if tree-sitter --version &>/dev/null; then
+          log_success "tree-sitter CLI installed to $HOME/.npm-global/bin"
+        else
+          log_warning "npm tree-sitter binary incompatible (likely glibc mismatch), falling back to cargo..."
+          run_cmd npm uninstall -g tree-sitter-cli 2>/dev/null || true
+          if command -v cargo &>/dev/null; then
+            run_cmd cargo install tree-sitter-cli
+            log_success "tree-sitter CLI installed via cargo"
+          else
+            log_warning "cargo not found, skipping tree-sitter CLI installation"
+          fi
+        fi
       else
         log_warning "npm not found, skipping tree-sitter CLI installation"
       fi
