@@ -429,8 +429,8 @@ install_docker() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     if ! command -v docker &>/dev/null; then
       log_info "Installing Docker..."
-      # Docker is in apt.txt and will be installed via install_packages
-      log_info "Docker will be installed via apt packages"
+      run_cmd sudo apt-get update
+      run_cmd sudo apt-get install -y docker.io docker-compose
     else
       log_info "Docker already installed"
     fi
@@ -452,7 +452,8 @@ install_docker() {
       fi
     fi
   elif [[ "$OS_TYPE" == "macos" ]]; then
-    log_info "Docker Desktop will be installed via Homebrew cask"
+    log_info "Installing Docker Desktop via Homebrew..."
+    run_cmd brew install --cask docker
   fi
 }
 
