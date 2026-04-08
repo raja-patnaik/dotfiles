@@ -272,6 +272,7 @@ install_packages() {
     "sd:sd"
     "git-delta:delta"
     "atuin:atuin"
+    "tree-sitter-cli:tree-sitter"
   )
 
   for tool_entry in "${cargo_tools[@]}"; do
@@ -457,8 +458,8 @@ install_nodejs() {
       export PATH="$HOME/.npm-global/bin:$PATH"
     fi
 
-    # tree-sitter CLI no longer installed here — nvim-treesitter compiles
-    # parsers directly with the system C compiler (gcc/clang via build-essential)
+    # tree-sitter CLI installed via cargo (see cargo_tools) to avoid
+    # glibc mismatch with npm prebuilt binaries on older Linux (e.g. Azure ML)
   elif [[ "$OS_TYPE" == "macos" ]]; then
     log_info "Node.js will be installed via Homebrew"
   fi
