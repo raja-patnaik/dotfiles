@@ -12,7 +12,6 @@ software-properties-common
 
 # Shell and terminal
 zsh
-tmux
 shellcheck
 
 # Development tools

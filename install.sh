@@ -465,6 +465,47 @@ install_nodejs() {
   fi
 }
 
+TMUX_MIN_VERSION="3.3"
+
+install_tmux() {
+  if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
+    local current_ver=""
+    if command -v tmux &>/dev/null; then
+      current_ver=$(tmux -V | awk '{print $2}' | tr -d 'a-z')
+    fi
+
+    if [[ -n "$current_ver" ]] && awk "BEGIN{exit !($current_ver >= $TMUX_MIN_VERSION)}"; then
+      log_info "tmux $(tmux -V | awk '{print $2}') already installed, skipping build"
+      return
+    fi
+
+    # Fetch latest stable release tag from GitHub API
+    local tmux_version
+    tmux_version=$(curl -fsSL https://api.github.com/repos/tmux/tmux/releases/latest \
+      | grep -o '"tag_name": *"[^"]*"' | head -1 | grep -o '[0-9][^"]*')
+
+    if [[ -z "$tmux_version" ]]; then
+      log_warning "Could not determine latest tmux version, skipping build"
+      return
+    fi
+
+    log_info "Building tmux $tmux_version from source..."
+    run_cmd sudo apt-get install -y libevent-dev libncurses5-dev libncursesw5-dev bison byacc
+
+    local build_dir=$(mktemp -d)
+    run_cmd curl -fsSL "https://github.com/tmux/tmux/releases/download/$tmux_version/tmux-$tmux_version.tar.gz" \
+      | tar xz -C "$build_dir"
+    (
+      cd "$build_dir/tmux-$tmux_version"
+      run_cmd ./configure
+      run_cmd make -j"$(nproc)"
+      run_cmd sudo make install
+    )
+    rm -rf "$build_dir"
+    log_success "tmux $tmux_version installed from source"
+  fi
+}
+
 install_docker() {
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     local need_docker=false
@@ -610,6 +651,7 @@ main() {
     install_stow
     install_nodejs
     install_packages
+    install_tmux
     stow_configs
     setup_shell
     [[ "$SKIP_DOCKER" == false ]] && install_docker
