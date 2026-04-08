@@ -7,12 +7,11 @@ opt.autowrite = true          -- Enable auto write
 if vim.env.SSH_TTY or vim.env.TMUX then
   vim.g.clipboard = "osc52"
 elseif vim.fn.has("mac") == 1 then
-  opt.clipboard = "unnamedplus"
+  -- uses pbcopy/pbpaste
 elseif vim.fn.executable("wl-copy") == 1 and vim.fn.executable("wl-paste") == 1 then
   vim.g.clipboard = "wayclip"
-elseif vim.fn.executable("xclip") == 1 or vim.fn.executable("xsel") == 1 then
-  opt.clipboard = "unnamedplus"
 end
+opt.clipboard = "unnamedplus"
 opt.completeopt = "menu,menuone,noselect"
 opt.conceallevel = 3          -- Hide * markup for bold and italic
 opt.confirm = true            -- Confirm to save changes before exiting modified buffer
@@ -85,7 +84,10 @@ opt.foldmethod = "expr"
 opt.foldexpr = "nvim_treesitter#foldexpr()"
 
 -- Tree-sitter: compile parsers with system compiler (avoids glibc issues with npm tree-sitter-cli)
-require("nvim-treesitter.install").compilers = { "gcc", "clang", "cc" }
+local ok, ts_install = pcall(require, "nvim-treesitter.install")
+if ok then
+  ts_install.compilers = { "gcc", "clang", "cc" }
+end
 
 -- Python provider
 vim.g.python3_host_prog = vim.fn.exepath("python3")
