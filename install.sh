@@ -124,6 +124,22 @@ docker_group_exists() {
   fi
 }
 
+is_noninteractive_shell() {
+  [[ ! -t 0 ]] || [[ ! -t 1 ]] || [[ -n "${CI:-}" ]] || [[ "${DEBIAN_FRONTEND:-}" == "noninteractive" ]]
+}
+
+docker_compose_available() {
+  if command -v docker-compose &>/dev/null; then
+    return 0
+  fi
+
+  if command -v docker &>/dev/null && docker compose version &>/dev/null; then
+    return 0
+  fi
+
+  return 1
+}
+
 install_homebrew() {
   if [[ "$OS_TYPE" == "macos" ]] || [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
     if ! get_homebrew_bin &>/dev/null; then
@@ -405,8 +421,15 @@ setup_shell() {
   # Change default shell to zsh if not already
   if [[ "$SHELL" != *"zsh"* ]]; then
     if command -v zsh &>/dev/null; then
-      log_info "Changing default shell to zsh..."
-      run_cmd chsh -s "$(which zsh)"
+      local zsh_bin=""
+      zsh_bin="$(command -v zsh)"
+
+      if is_noninteractive_shell; then
+        log_warning "Non-interactive shell detected, skipping chsh. Run 'chsh -s $zsh_bin' manually later if needed."
+      else
+        log_info "Changing default shell to zsh..."
+        run_cmd chsh -s "$zsh_bin"
+      fi
     fi
   fi
 
@@ -463,11 +486,9 @@ install_docker() {
 
     if ! command -v docker &>/dev/null; then
       need_docker=true
-    elif command -v apt-get &>/dev/null && ! docker_group_exists; then
-      need_docker=true
     fi
 
-    if ! command -v docker-compose &>/dev/null && ! docker compose version &>/dev/null; then
+    if ! docker_compose_available; then
       need_compose=true
     fi
 
@@ -480,7 +501,7 @@ install_docker() {
         run_cmd sudo apt-get update
         run_cmd sudo apt-get install -y "${pkgs[@]}"
       else
-        log_warning "apt-get not found, skipping Docker installation"
+        log_warning "apt-get not found, skipping Docker/Compose installation"
       fi
     else
       log_info "Docker and Compose already installed"
@@ -488,7 +509,11 @@ install_docker() {
 
     # Configure Docker to run without sudo
     if ! docker_group_exists; then
-      log_warning "Docker group not found, skipping docker group setup"
+      if command -v docker &>/dev/null; then
+        log_warning "Docker group not found on this host, skipping docker group setup"
+      else
+        log_warning "Docker group not found, skipping docker group setup"
+      fi
     elif ! id -nG "$USER" | grep -qw docker; then
       log_info "Adding user to docker group..."
       run_cmd sudo usermod -aG docker "$USER"
@@ -506,6 +531,9 @@ install_docker() {
     fi
   elif [[ "$OS_TYPE" == "macos" ]]; then
     install_homebrew
+    if ! load_homebrew_shellenv; then
+      log_error "Homebrew is required to install Docker Desktop, but brew could not be loaded into PATH"
+    fi
     log_info "Installing Docker Desktop via Homebrew..."
     run_cmd brew install --cask docker
   fi
