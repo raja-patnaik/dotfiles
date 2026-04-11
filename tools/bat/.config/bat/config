@@ -27,8 +27,7 @@
 # Wrap text instead of using horizontal scrolling
 --wrap=auto
 
-# Set terminal width (0 = auto-detect)
---terminal-width=0
+# Terminal width auto-detected by default (no flag needed)
 
 # Add custom syntax definitions
 # --syntax-definition="/path/to/custom.sublime-syntax"

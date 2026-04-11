@@ -470,7 +470,7 @@ install_nodejs() {
     # Configure npm to use Linux-only global prefix (critical for WSL)
     if [[ "$IS_WSL" == true ]] || [[ "$OS_TYPE" == "linux" ]]; then
       log_info "Configuring npm global prefix for Linux..."
-      run_cmd npm config set prefix "$HOME/.npm-global"
+      run_cmd npm config set --location=global prefix "$HOME/.npm-global"
       export PATH="$HOME/.npm-global/bin:$PATH"
     fi
 
