@@ -492,34 +492,41 @@ install_tmux() {
 
     if [[ -n "$current_ver" ]] && awk "BEGIN{exit !($current_ver >= $TMUX_MIN_VERSION)}"; then
       log_info "tmux $(tmux -V | awk '{print $2}') already installed, skipping build"
-      return
+    else
+      # Fetch latest stable release tag from GitHub API
+      local tmux_version
+      tmux_version=$(curl -fsSL https://api.github.com/repos/tmux/tmux/releases/latest \
+        | grep -o '"tag_name": *"[^"]*"' | head -1 | grep -o '[0-9][^"]*')
+
+      if [[ -z "$tmux_version" ]]; then
+        log_warning "Could not determine latest tmux version, skipping build"
+        return
+      fi
+
+      log_info "Building tmux $tmux_version from source..."
+      run_cmd sudo apt-get remove -y tmux 2>/dev/null || true
+      run_cmd sudo apt-get install -y libevent-dev libncurses5-dev libncursesw5-dev bison byacc
+
+      local build_dir=$(mktemp -d)
+      run_cmd curl -fsSL "https://github.com/tmux/tmux/releases/download/$tmux_version/tmux-$tmux_version.tar.gz" \
+        | tar xz -C "$build_dir"
+      (
+        cd "$build_dir/tmux-$tmux_version"
+        run_cmd ./configure
+        run_cmd make -j"$(nproc)"
+        run_cmd sudo make install
+      )
+      rm -rf "$build_dir"
+      log_success "tmux $tmux_version installed from source"
     fi
 
-    # Fetch latest stable release tag from GitHub API
-    local tmux_version
-    tmux_version=$(curl -fsSL https://api.github.com/repos/tmux/tmux/releases/latest \
-      | grep -o '"tag_name": *"[^"]*"' | head -1 | grep -o '[0-9][^"]*')
-
-    if [[ -z "$tmux_version" ]]; then
-      log_warning "Could not determine latest tmux version, skipping build"
-      return
+    # Install TPM and plugins
+    if [[ ! -d "$HOME/.tmux/plugins/tpm" ]]; then
+      log_info "Installing TPM..."
+      run_cmd git clone --depth=1 https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
     fi
-
-    log_info "Building tmux $tmux_version from source..."
-    run_cmd sudo apt-get remove -y tmux 2>/dev/null || true
-    run_cmd sudo apt-get install -y libevent-dev libncurses5-dev libncursesw5-dev bison byacc
-
-    local build_dir=$(mktemp -d)
-    run_cmd curl -fsSL "https://github.com/tmux/tmux/releases/download/$tmux_version/tmux-$tmux_version.tar.gz" \
-      | tar xz -C "$build_dir"
-    (
-      cd "$build_dir/tmux-$tmux_version"
-      run_cmd ./configure
-      run_cmd make -j"$(nproc)"
-      run_cmd sudo make install
-    )
-    rm -rf "$build_dir"
-    log_success "tmux $tmux_version installed from source"
+    log_info "Installing tmux plugins..."
+    run_cmd "$HOME/.tmux/plugins/tpm/bin/install_plugins"
   fi
 }
 
