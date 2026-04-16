@@ -250,6 +250,12 @@ install_packages() {
     ;;
   esac
 
+  # Install global npm packages
+  if command -v npm &>/dev/null; then
+    log_info "Installing global npm packages..."
+    run_cmd npm i -g prettier
+  fi
+
   # Install Rust and cargo tools
   # Always clean up old apt-based cargo installations first (Linux/WSL only)
   if [[ "$OS_TYPE" == "linux" ]] || [[ "$IS_WSL" == true ]]; then
@@ -371,6 +377,7 @@ stow_configs() {
     "tools/fzf"
     "tools/lazygit"
     "tools/atuin"
+    "tools/prettier"
   )
 
   # Ensure parent directories exist as regular directories
