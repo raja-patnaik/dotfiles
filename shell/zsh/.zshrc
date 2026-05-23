@@ -117,7 +117,46 @@ fi
 alias reload='exec zsh'
 
 # ============================================================================
+# Tmux Session Per Folder
+# ============================================================================
+
+# tmux session per folder. `tm` (no args) attaches to / creates a session
+# named after the current dir's basename. `tm name` overrides the name.
+# Works whether already inside tmux (switch-client) or outside it (attach).
+tm() {
+    command -v tmux >/dev/null 2>&1 || { echo "tmux not installed"; return 1; }
+    local name="${1:-${PWD:t}}"      # ${PWD:t} = zsh basename, no subshell
+    name="${name//[.: ]/-}"          # tmux dislikes . and : ; spaces are awkward
+    name="${name#-}"                 # drop leading dash from dotfolders (.config)
+    if [ -n "$TMUX" ]; then
+        tmux new-session -d -A -s "$name" -c "$PWD"
+        tmux switch-client -t "=$name"
+    else
+        tmux new-session -A -s "$name" -c "$PWD"
+    fi
+}
+
+# Tab-complete `tm` with existing session names.
+_tm() { compadd -- ${(f)"$(tmux list-sessions -F '#S' 2>/dev/null)"} }
+compdef _tm tm
+
+# ============================================================================
 # Local Configuration
 # ============================================================================
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+# ============================================================================
+# Tmux Auto-Attach
+# ============================================================================
+
+# Auto-attach on interactive shells, but skip inside tmux, non-interactive
+# shells (scp/rsync/scripts), VS Code's terminal, and when TM_NO_AUTO is set.
+# Runs after ~/.zshrc.local so that file can set TM_NO_AUTO=1 to opt out.
+if command -v tmux >/dev/null 2>&1 \
+   && [ -z "$TMUX" ] \
+   && [[ $- == *i* ]] \
+   && [ "$TERM_PROGRAM" != "vscode" ] \
+   && [ -z "$TM_NO_AUTO" ]; then
+    tm
+fi
