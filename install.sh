@@ -273,14 +273,16 @@ install_packages() {
   if ! command -v rustup &>/dev/null; then
     log_info "Installing Rust via rustup..."
     run_cmd rm -rf ~/.cargo ~/.rustup 2>/dev/null || true
-    run_cmd bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+    run_cmd bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y" \
+      || log_warning "rustup install failed (network/egress?); cargo tools will be skipped"
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
   else
     log_info "Updating Rust to latest stable..."
     if ! rustup update stable 2>/dev/null; then
       log_warning "Rustup update failed, reinstalling..."
       run_cmd rm -rf ~/.cargo ~/.rustup ~/.local/share/cargo 2>/dev/null || true
-      run_cmd bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+      run_cmd bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y" \
+        || log_warning "rustup reinstall failed (network/egress?); cargo tools will be skipped"
     fi
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
   fi
@@ -302,8 +304,12 @@ install_packages() {
     local crate="${tool_entry%%:*}"
     local binary="${tool_entry##*:}"
     if ! command -v "$binary" &>/dev/null; then
-      log_info "Installing $crate..."
-      run_cmd cargo install "$crate"
+      if command -v cargo &>/dev/null; then
+        log_info "Installing $crate..."
+        run_cmd cargo install "$crate" || log_warning "cargo install $crate failed; continuing"
+      else
+        log_warning "cargo not available; skipping $crate"
+      fi
     fi
   done
 }
@@ -538,8 +544,17 @@ install_tmux() {
       log_info "Installing TPM..."
       run_cmd git clone --depth=1 https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
     fi
-    log_info "Installing tmux plugins..."
-    run_cmd "$HOME/.tmux/plugins/tpm/bin/install_plugins"
+    if [[ -f "$HOME/.tmux.conf" ]]; then
+      log_info "Installing tmux plugins..."
+      # Headless-safe: a detached session forces tmux to source ~/.tmux.conf,
+      # which defines TMUX_PLUGIN_MANAGER_PATH for TPM's install script.
+      run_cmd tmux new-session -d -s __tpm_install 2>/dev/null || true
+      run_cmd "$HOME/.tmux/plugins/tpm/bin/install_plugins" \
+        || log_warning "TPM plugin install failed; run prefix+I inside tmux later"
+      run_cmd tmux kill-session -t __tpm_install 2>/dev/null || true
+    else
+      log_warning "~/.tmux.conf not found; skipping TPM plugin install (run prefix+I inside tmux later)"
+    fi
   fi
 }
 
@@ -694,11 +709,16 @@ main() {
     dedup_apt_sources
     install_homebrew
     install_stow
+    # Stow runs BEFORE heavy builds: (a) a failed build can no longer leave
+    # the box without configs in place, and (b) install_tmux's TPM plugin
+    # step requires the stowed ~/.tmux.conf to exist.
+    stow_configs
     install_nodejs
     install_packages
-    install_tmux
-    stow_configs
+    # setup_shell runs AFTER install_packages: zsh comes from apt.txt/Brewfile,
+    # so chsh would silently no-op on a fresh box if run earlier.
     setup_shell
+    install_tmux
     [[ "$SKIP_DOCKER" == false ]] && install_docker
     setup_neovim
   else
