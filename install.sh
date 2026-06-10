@@ -253,7 +253,8 @@ install_packages() {
   # Install global npm packages
   if command -v npm &>/dev/null; then
     log_info "Installing global npm packages..."
-    run_cmd npm i -g prettier
+    run_cmd npm i -g prettier \
+      || log_warning "Global npm install failed (check npm prefix); skipping prettier"
   fi
 
   # Install Rust and cargo tools
@@ -477,7 +478,12 @@ install_nodejs() {
     # Configure npm to use Linux-only global prefix (critical for WSL)
     if [[ "$IS_WSL" == true ]] || [[ "$OS_TYPE" == "linux" ]]; then
       log_info "Configuring npm global prefix for Linux..."
-      run_cmd npm config set --location=global prefix "$HOME/.npm-global"
+      # User-level config (~/.npmrc). Do NOT use --location=global: that writes
+      # to $(npm prefix)/etc/npmrc (e.g. /usr/local/etc/npmrc) and fails with
+      # EACCES on images where node is preinstalled as root (Azure ML).
+      run_cmd npm config set prefix "$HOME/.npm-global" \
+        || log_warning "Could not set npm prefix; global npm installs may need sudo"
+      run_cmd mkdir -p "$HOME/.npm-global/bin"
       export PATH="$HOME/.npm-global/bin:$PATH"
     fi
 
@@ -606,10 +612,17 @@ setup_neovim() {
     if [[ "$OS_TYPE" == "macos" ]]; then
       run_cmd brew install neovim
     else
-      # Install from AppImage for latest version
-      run_cmd curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-      run_cmd chmod u+x nvim.appimage
-      run_cmd sudo mv nvim.appimage /usr/local/bin/nvim
+      # Install latest release tarball. (The old nvim.appimage asset no longer
+      # exists — renamed to nvim-linux-x86_64 in v0.10.4 — and AppImages need
+      # FUSE, which headless VMs often lack.)
+      local nvim_tmp
+      nvim_tmp=$(mktemp -d)
+      run_cmd curl -fsSL -o "$nvim_tmp/nvim.tar.gz" \
+        https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+      run_cmd sudo rm -rf /opt/nvim-linux-x86_64
+      run_cmd sudo tar -C /opt -xzf "$nvim_tmp/nvim.tar.gz"
+      run_cmd sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
+      rm -rf "$nvim_tmp"
     fi
   else
     log_info "Neovim already installed"
