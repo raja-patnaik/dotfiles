@@ -4,10 +4,10 @@ local opt = vim.opt
 -- General settings
 opt.autowrite = true          -- Enable auto write
 -- Clipboard: OSC52 over SSH/tmux, system clipboard otherwise
-if vim.env.SSH_TTY or vim.env.TMUX then
+if vim.env.SSH_CONNECTION or vim.env.SSH_CLIENT or vim.env.SSH_TTY or vim.env.TMUX then
   vim.g.clipboard = "osc52"
 elseif vim.fn.has("mac") == 1 then
-  -- uses pbcopy/pbpaste
+  -- Uses pbcopy/pbpaste
 elseif vim.fn.executable("wl-copy") == 1 and vim.fn.executable("wl-paste") == 1 then
   vim.g.clipboard = "wayclip"
 end
