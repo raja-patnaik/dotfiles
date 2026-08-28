@@ -1,0 +1,6 @@
+# Global markdownlint rules for nvim (referenced by the nvim-lint override in
+# lua/plugins/init.lua). Project-level .markdownlint* files still take priority
+# in their own subdirectories.
+config:
+  # MD013/line-length: don't complain about lines over 80 characters
+  MD013: false
